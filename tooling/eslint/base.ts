@@ -1,5 +1,5 @@
 import * as path from "node:path";
-import { includeIgnoreFile } from "@eslint/compat";
+import { fixupPluginRules, includeIgnoreFile } from "@eslint/compat";
 import eslint from "@eslint/js";
 import importPlugin from "eslint-plugin-import";
 import turboPlugin from "eslint-plugin-turbo";
@@ -52,7 +52,7 @@ export const baseConfig = defineConfig(
   {
     files: ["**/*.js", "**/*.ts", "**/*.tsx"],
     plugins: {
-      import: importPlugin,
+      import: fixupPluginRules(importPlugin),
       turbo: turboPlugin,
     },
     extends: [

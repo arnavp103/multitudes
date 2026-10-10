@@ -6,19 +6,16 @@ import type {
   StreamOptions,
   Usage,
 } from "@strands-agents/sdk";
-import { createDeepSeek } from "@ai-sdk/deepseek";
 import { context, metrics, SpanStatusCode, trace } from "@opentelemetry/api";
 import { Model } from "@strands-agents/sdk";
-import { BedrockModel } from "@strands-agents/sdk/models/bedrock";
 import { GoogleModel } from "@strands-agents/sdk/models/google";
-import { OpenAIModel } from "@strands-agents/sdk/models/openai";
-import { VercelModel } from "@strands-agents/sdk/models/vercel";
 
 import { finishModelCall, startModelCall } from "@multitudes/db/usage";
 import { createLogger, safeError } from "@multitudes/observability/logger";
 
 import { estimateCost, getPrice } from "./pricing";
 
+/** Legacy identities remain readable; only Gemini may execute new calls. */
 export type Provider = "gemini" | "deepseek" | "openai" | "bedrock";
 export interface ModelIdentity {
   provider: Provider;
@@ -33,51 +30,26 @@ export const defaultModel: ModelIdentity = {
   provider: "gemini",
   modelId: "gemini-3.8-flash",
 };
-export const modelPresets = [
-  defaultModel,
-  { provider: "deepseek", modelId: "deepseek-flash" } satisfies ModelIdentity,
-];
-
-/** Concrete provider selection is centralized; apps and judges never instantiate SDK clients. */
+/** Use the native Google adapter for agents and judges, with one metered HTTP attempt. */
 export function createModel(
   identity: ModelIdentity,
   call: CallContext,
   store?: UsageStore,
 ) {
-  const common = { modelId: identity.modelId, maxTokens: 4096 };
-  let delegate: Model;
-  switch (identity.provider) {
-    case "gemini":
-      delegate = new GoogleModel({
-        ...common,
-        apiKey: process.env.GEMINI_API_KEY,
-        clientConfig: {
-          vertexai: false,
-          httpOptions: { retryOptions: { attempts: 1 } },
-        },
-      });
-      break;
-    case "deepseek":
-      delegate = new VercelModel({
-        ...common,
-        provider: createDeepSeek({ apiKey: process.env.DEEPSEEK_API_KEY })(
-          identity.modelId,
-        ),
-      });
-      break;
-    case "openai":
-      delegate = new OpenAIModel({
-        ...common,
-        clientConfig: { maxRetries: 0 },
-      });
-      break;
-    case "bedrock":
-      delegate = new BedrockModel({
-        ...common,
-        clientConfig: { maxAttempts: 1 },
-      });
-      break;
+  if (identity.provider !== "gemini") {
+    throw new Error(
+      "Unsupported provider: create a new Gemini run or eval case",
+    );
   }
+  const delegate = new GoogleModel({
+    modelId: identity.modelId,
+    maxTokens: 4096,
+    apiKey: process.env.GEMINI_API_KEY,
+    clientConfig: {
+      vertexai: false,
+      httpOptions: { retryOptions: { attempts: 1 } },
+    },
+  });
   return meterModel(delegate, identity, call, store);
 }
 

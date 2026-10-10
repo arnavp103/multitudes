@@ -20,8 +20,6 @@
     "test:integration": "node --import tsx --test test/integration.test.ts"
   },
   "dependencies": {
-    "@ai-sdk/deepseek": "^2.0.71",
-    "@ai-sdk/provider": "^3.0.0",
     "@google/genai": "^2.6.0",
     "@multitudes/db": "workspace:*",
     "@multitudes/observability": "workspace:*",

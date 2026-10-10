@@ -2,6 +2,12 @@
   "$schema": "./node_modules/syncpack/schema.json",
   "versionGroups": [
     {
+      "label": "ESLint compiler API compatibility; native TypeScript 7 still provides tsc",
+      "packages": ["@multitudes/eslint-config"],
+      "dependencies": ["typescript"],
+      "pinVersion": "npm:@typescript/typescript6@6.0.2"
+    },
+    {
       "label": "Use workspace:* for local packages",
       "dependencies": ["$LOCAL"],
       "dependencyTypes": ["dev", "prod"],

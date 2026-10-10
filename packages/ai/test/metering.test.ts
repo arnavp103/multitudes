@@ -8,7 +8,7 @@ import type { CallFinish, CallStart } from "@multitudes/db/usage";
 import { meterModel } from "../src/index";
 import { estimateCost, getPrice } from "../src/pricing";
 
-const identity = { provider: "deepseek" as const, modelId: "deepseek-flash" };
+const identity = { provider: "gemini" as const, modelId: "gemini-3.8-flash" };
 const call = { runId: "fixture", attempt: 1, purpose: "judge" as const };
 class FixtureModel extends Model {
   calls = 0;
@@ -69,19 +69,13 @@ await test("ledger failure stops the provider before spending", async () => {
   assert.equal(delegate.calls, 0);
 });
 
-await test("pricing distinguishes cached input, unknown usage, peak hours, and future Gemini rates", () => {
-  const weekday = getPrice(
-    "deepseek",
-    "deepseek-flash",
-    new Date("2026-10-12T02:00:00Z"),
-  );
-  const weekend = getPrice(
-    "deepseek",
-    "deepseek-flash",
+await test("pricing distinguishes cached input, unknown usage, and future Gemini rates", () => {
+  const price = getPrice(
+    "gemini",
+    "gemini-3.8-flash",
     new Date("2026-10-10T02:00:00Z"),
   );
-  assert.equal(weekday?.input, 0.3);
-  assert.equal(weekend?.input, 0.15);
+  assert.equal(price?.input, 0.75);
   assert.equal(
     estimateCost(
       {
@@ -90,11 +84,11 @@ await test("pricing distinguishes cached input, unknown usage, peak hours, and f
         outputTokens: 200,
         totalTokens: 1200,
       },
-      weekday,
+      price,
     ),
-    (500 * 0.3 + 500 * 0.006 + 200 * 1.2) / 1e6,
+    (500 * 0.75 + 500 * 0.075 + 200 * 3.75) / 1e6,
   );
-  assert.equal(estimateCost(undefined, weekday), null);
+  assert.equal(estimateCost(undefined, price), null);
   assert.equal(getPrice("gemini", "unknown"), null);
   assert.equal(
     getPrice("gemini", "gemini-3.8-flash", new Date("2027-01-01T00:00:00Z"))

@@ -6,6 +6,7 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 
 - Node.js `^24.0.0`
 - pnpm `^10.34.6`
+- TypeScript 7.0.2 and ESLint 10 (installed through the workspace catalog)
 
 ## Getting started
 
@@ -48,7 +49,7 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 - `apps/webapp` — Next.js app with tRPC, Better Auth, and the shared UI
 - `apps/studio` — internal playground, eval authoring, trajectories and reliability/cost dashboard
 - `apps/backend` — durable Strands worker
-- `packages/ai` — metered Gemini AI Studio and DeepSeek providers
+- `packages/ai` — metered Gemini AI Studio through native Strands GoogleModel
 - `packages/agent` — SDK, API tools and editable system prompt
 - `packages/evals` — assertions and LLM judges
 - `packages/observability` — Pino and OpenTelemetry for every server app
@@ -63,20 +64,22 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 
 ## Common commands
 
-| Command                     | Description                                        |
-| --------------------------- | -------------------------------------------------- |
-| `pnpm dev:webapp`           | Run the web app and its workspace dependencies     |
-| `pnpm build`                | Build all workspaces                               |
-| `pnpm lint`                 | Lint all workspaces                                |
-| `pnpm test:unit`            | Run unit and UI tests                              |
-| `pnpm test:integration`     | Run HTTP adapter and isolated PostgreSQL tests     |
-| `pnpm dev:email`            | Preview React Email templates on port 3002         |
-| `pnpm typecheck`            | Type-check all workspaces                          |
-| `pnpm format:fix`           | Format all workspaces                              |
-| `pnpm db:push`              | Push the Drizzle schema to the configured database |
-| `pnpm db:studio`            | Open Drizzle Studio                                |
-| `pnpm exec multitudes help` | Show CLI help                                      |
-| `pnpm syncpack`             | Check dependency version consistency               |
+| Command                     | Description                                                  |
+| --------------------------- | ------------------------------------------------------------ |
+| `pnpm dev:webapp`           | Run the web app and its workspace dependencies               |
+| `pnpm build:apps`           | Build both Next apps and the worker with a Git version stamp |
+| `pnpm test:health`          | Smoke-test health endpoints after building                   |
+| `pnpm build`                | Build all workspaces                                         |
+| `pnpm lint`                 | Lint all workspaces                                          |
+| `pnpm test:unit`            | Run unit and UI tests                                        |
+| `pnpm test:integration`     | Run HTTP adapter and isolated PostgreSQL tests               |
+| `pnpm dev:email`            | Preview React Email templates on port 3002                   |
+| `pnpm typecheck`            | Type-check all workspaces                                    |
+| `pnpm format:fix`           | Format all workspaces                                        |
+| `pnpm db:push`              | Push the Drizzle schema to the configured database           |
+| `pnpm db:studio`            | Open Drizzle Studio                                          |
+| `pnpm exec multitudes help` | Show CLI help                                                |
+| `pnpm syncpack`             | Check dependency version consistency                         |
 
 ## Commit messages
 

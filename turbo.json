@@ -64,7 +64,8 @@
     "AGENT_PROVIDER",
     "AGENT_CODE_VERSION",
     "WORKER_CONCURRENCY",
-    "LOG_LEVEL"
+    "LOG_LEVEL",
+    "APP_VERSION"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",
@@ -75,11 +76,9 @@
     "npm_lifecycle_event",
     "OTEL_*",
     "AWS_*",
-    "OPENAI_API_KEY",
     "TEST_POSTGRES_URL",
     "NEXT_RUNTIME",
     "GEMINI_API_KEY",
-    "DEEPSEEK_API_KEY",
     "NEXT_OTEL_VERBOSE",
     "NEXT_OTEL_FETCH_DISABLED"
   ]

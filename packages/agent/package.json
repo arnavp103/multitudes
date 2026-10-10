@@ -29,7 +29,6 @@
     "@multitudes/observability": "workspace:*",
     "@opentelemetry/api": "^1.9.0",
     "@strands-agents/sdk": "1.20.0",
-    "openai": "^6.45.0",
     "zod": "catalog:"
   },
   "devDependencies": {

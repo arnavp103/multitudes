@@ -9,7 +9,7 @@ export function ConfigurationFields() {
   const env = readStudioEnv();
   return (
     <>
-      <ModelFields provider={env.AGENT_PROVIDER} modelId={env.AGENT_MODEL_ID} />
+      <ModelFields modelId={env.AGENT_MODEL_ID} />
       <label>
         System prompt
         <Textarea

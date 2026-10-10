@@ -20,7 +20,7 @@ is configured.
    locally `local` is sufficient. Production should use the deployed Git SHA.
 4. Register `http://localhost:3001/api/auth/callback/discord` with Discord as an
    additional redirect URL. The product app retains its own callback URL.
-5. Set `GEMINI_API_KEY` for Gemini AI Studio or `DEEPSEEK_API_KEY` for DeepSeek.
+5. Set `GEMINI_API_KEY` for Gemini AI Studio.
    The defaults are `AGENT_PROVIDER=gemini` and `AGENT_MODEL_ID=gemini-3.8-flash`.
 6. Run `pnpm dev:backend` and `pnpm dev:studio` in separate terminals. Open
    http://localhost:3001 and sign in with an allowlisted, verified email.
@@ -45,7 +45,7 @@ import { submitRun } from "@multitudes/agent";
 const runId = await submitRun({
   input: "Summarize this request...",
   configuration: {
-    provider: "gemini", // or "deepseek"
+    provider: "gemini",
     modelId: configuredModelId,
     systemPrompt: configuredPrompt,
     codeVersion: deployedGitSha,
@@ -212,15 +212,18 @@ CI runs unit and integration suites in distinct jobs and builds both Next.js app
 
 ## Models, costs, and the admin dashboard
 
-`packages/ai` owns provider construction and metering. Default: Gemini AI Studio
-(`gemini-3.8-flash`, `GEMINI_API_KEY`), with DeepSeek (`deepseek-flash`,
-`DEEPSEEK_API_KEY`) as the other preset. DeepSeek uses the AI SDK provider's V3
-adapter through Strands; it preserves reasoning/tool exchanges and cache usage.
-The provider stays on the compatible 2.x line while Strands expects V3; UI AI SDK
-types are independent. Upgrade the adapter contract together, then run HTTP fixtures.
-Google uses the native Strands Google provider with `vertexai: false`. Existing
-OpenAI/Bedrock configurations remain readable/runnable, but prices for models
-without a rate entry are deliberately unknown.
+`packages/ai` owns model construction and metering. Agents and LLM judges use the
+native Strands `GoogleModel` with `@google/genai`, `vertexai: false`, and
+`GEMINI_API_KEY`. The default model is `gemini-3.8-flash`; Studio lets you edit the
+Gemini model ID. No VercelModel or AI SDK adapter is involved in execution, so
+UI AI SDK dependencies can evolve independently.
+
+The Google client makes one HTTP attempt per metered invocation; harness/worker
+retries remain visible in the ledger. New requests only accept `gemini`.
+Historical configurations and cost snapshots remain readable. Before deploying
+this change, drain pending non-Gemini runs with the previous worker. To rerun an
+old experiment or use a legacy judge, author a new Gemini configuration/case;
+legacy providers fail explicitly and are never silently reinterpreted.
 
 Every agent or judge model invocation creates a `model_call` row **before** network
 work. It records purpose, provider, model, attempt, timestamps, reported token
@@ -241,8 +244,6 @@ rewritten. Verified 2026-10-10 against:
 
 - https://ai.google.dev/gemini-api/docs/pricing (paid standard text, including
   thinking; scheduled January 2027 rate change included).
-- https://api-docs.deepseek.com/quick_start/pricing/ (peak/off-peak cached and
-  uncached input; Chinese holiday discounts require invoice reconciliation).
 
 The UI labels these **estimates**, not invoices. Free-tier credits, discounts,
 cache storage, and unknown model rates are not invented. Add a rate entry and a
@@ -272,7 +273,7 @@ code-execution, or grounding tools are configured.
 
 ## LLM judges
 
-Case authoring supports an optional rubric, Gemini/DeepSeek judge model, and a
+Case authoring supports an optional rubric, Gemini judge model, and a
 0–1 pass threshold. Cases can use assertions, a judge, or both; when both are
 configured, **both must pass**. The judge prompt is independently editable at
 `packages/evals/src/prompts/judge.ts` and versioned. A tool-free judge receives the
@@ -311,3 +312,72 @@ sending is configured. Calling `send` without an adapter throws explicitly.
 The caller must pass an idempotency key; future adapters must forward or enforce
 it. There are no implicit retries after ambiguous send failures. Recipient
 addresses, subject, and email content are excluded from logs.
+
+## Deployment identity and health
+
+Use `pnpm build` or `pnpm build:apps` to build deployable applications. The build
+wrapper resolves `APP_VERSION` from the full Git commit SHA before Turbo hashes
+its tasks, then generates `packages/observability/src/build-info.generated.ts`.
+This ignored file is a required build artifact: Next bundles it into both server
+and browser code, and the source-based worker imports it at runtime. Include it
+when packaging the worker; do not regenerate it in the runtime image. A changed
+SHA changes Turbo's cache key even if source files are otherwise identical.
+
+Git-less build contexts must supply the full commit SHA explicitly:
+
+```sh
+APP_VERSION="$CI_COMMIT_SHA" pnpm install --frozen-lockfile
+APP_VERSION="$CI_COMMIT_SHA" pnpm build:apps
+```
+
+`APP_VERSION` must be a full 40- or 64-character hexadecimal SHA. An absent Git
+checkout without an explicit version fails the build instead of inventing a
+version. Runtime `APP_VERSION` and `OTEL_RESOURCE_ATTRIBUTES` cannot replace the
+baked identity. `version` in Pino (including browser logs), OTel `service.version`
+and `version`, and the health response are identical. OTel also exposes the full
+SHA as `vcs.ref.head.revision`. Keep `AGENT_CODE_VERSION` aligned with this revision
+when deploying the worker and producer apps; it remains the execution-compatibility
+check for durable jobs.
+
+All three apps serve public `GET /api/health` with `Cache-Control: no-store`:
+
+```json
+{ "status": "ok", "version": "<full Git SHA>", "sha": "<full Git SHA>" }
+```
+
+The Next endpoints return 200 without requiring authentication or downstream
+connections. The worker listens on `PORT` (default 8080), returning 503 with
+`status: "unavailable"` before its queue is ready and during graceful draining.
+These are process checks, not database/provider availability or queue-progress
+checks; use the existing operational metrics for those dependencies.
+
+- App Runner: choose an HTTP health check with path `/api/health` on the app port.
+- ALB target group: path `/api/health`, success matcher `200`, traffic port.
+- Docker: after building/copying the artifact, use a probe that fails on non-200:
+
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||8080)+'/api/health',{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"
+```
+
+Set the container `PORT` to match its server (Next defaults to 3000; Studio dev
+uses 3001; the worker defaults to 8080). No AWS resources are provisioned here.
+`pnpm test:health` starts both built Next apps and verifies public health and
+runtime-override resistance. The separate backend integration test exercises
+startup/ready/draining states on a real HTTP socket.
+
+## TypeScript 7 and ESLint 10
+
+Workspace compilation and type checking use TypeScript 7.0.2's native `tsc`.
+VS Code recommends Microsoft's TypeScript 7 extension and uses the workspace
+native language server instead of the removed JavaScript tsserver path.
+Next enables `experimental.useTypeScriptCli` so its build check uses the same
+compiler. ESLint 10 uses the shared flat config; legacy plugin rule APIs are
+adapted with the official `@eslint/compat` helpers.
+
+The ESLint-config workspace alone retains `typescript` as an alias to Microsoft's
+`@typescript/typescript6` compatibility API because typescript-eslint currently
+requires it. Its separate `@typescript/native` alias supplies the same TypeScript
+7 compiler, without competing `tsc` executables. This is a tooling compatibility
+bridge, not an application compiler downgrade. See Microsoft's migration guidance:
+https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/ .

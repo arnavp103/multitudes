@@ -4,7 +4,8 @@ packages:
   - tooling/*
 
 catalog:
-  "@eslint/js": ^9.39.5
+  "@typescript/native": "npm:typescript@7.0.2"
+  "@eslint/js": ^10.0.1
   "@tailwindcss/postcss": ^4.3.3
   "@tailwindcss/vite": ^4.3.3
   "@tanstack/react-form": ^1.33.5
@@ -15,10 +16,10 @@ catalog:
   "@types/node": ^24.19.2
   "@vitejs/plugin-react": 6.1.2
   better-auth: 1.7.7
-  eslint: ^9.39.5
+  eslint: ^10.12.0
   prettier: ^3.9.9
   tailwindcss: ^4.3.3
-  typescript: ^6.0.3
+  typescript: 7.0.2
   zod: ^4.6.5
   vite: 8.3.4
 

@@ -1,6 +1,6 @@
 import { index, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
 
-/** Immutable configuration selected when a run is enqueued. */
+/** Immutable run snapshot. Legacy provider values remain readable, but cannot execute. */
 export interface AgentConfiguration {
   provider: "gemini" | "deepseek" | "bedrock" | "openai";
   modelId: string;
@@ -13,6 +13,7 @@ export interface EvalAssertion {
   value: string;
 }
 
+/** Frozen historical rubric; new cases only accept Gemini. */
 export interface JudgeConfig {
   provider: "gemini" | "deepseek";
   modelId: string;

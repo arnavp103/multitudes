@@ -28,19 +28,6 @@ export function getPrice(
       note: "Paid standard text tokens, including thinking. Excludes free-tier credits and cache storage.",
     };
   }
-  if (provider === "deepseek" && modelId === "deepseek-flash") {
-    const weekday = date.getUTCDay() > 0 && date.getUTCDay() < 6;
-    const hour = date.getUTCHours();
-    const peak =
-      weekday && ((hour >= 1 && hour < 4) || (hour >= 6 && hour < 10));
-    return {
-      version: `deepseek-2026-09-10-${peak ? "peak" : "offpeak"}`,
-      input: peak ? 0.3 : 0.15,
-      cachedInput: peak ? 0.006 : 0.003,
-      output: peak ? 1.2 : 0.6,
-      note: "Text-token estimate at call start. Peak estimate is conservative on Chinese public holidays; reconcile with provider invoices.",
-    };
-  }
   return null;
 }
 

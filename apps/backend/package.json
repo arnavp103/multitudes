@@ -4,14 +4,15 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "build": "tsc --noEmit",
+    "build": "node ../../tooling/version.mjs tsc --noEmit",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
-    "dev": "pnpm with-env tsx watch src/bootstrap.ts",
+    "dev": "node ../../tooling/version.mjs pnpm with-env tsx watch src/bootstrap.ts",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint --flag unstable_native_nodejs_ts_config",
     "typecheck": "tsc --noEmit",
     "start": "pnpm with-env tsx src/bootstrap.ts",
-    "with-env": "dotenvx run -f ../../.env --"
+    "with-env": "dotenvx run -f ../../.env --",
+    "test:integration": "node --import tsx --test test/integration.test.ts"
   },
   "dependencies": {
     "@multitudes/agent": "workspace:*",

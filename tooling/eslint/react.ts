@@ -1,9 +1,10 @@
+import { fixupConfigRules } from "@eslint/compat";
 import reactPlugin from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import { defineConfig } from "eslint/config";
 
 export const reactConfig = defineConfig(
-  {
+  ...fixupConfigRules({
     files: ["**/*.ts", "**/*.tsx"],
     ...reactPlugin.configs.flat.recommended,
     ...reactPlugin.configs.flat["jsx-runtime"],
@@ -14,6 +15,6 @@ export const reactConfig = defineConfig(
         React: "writable",
       },
     },
-  },
+  }),
   reactHooks.configs.flat["recommended-latest"]!,
 );

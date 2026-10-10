@@ -1,5 +1,6 @@
 /** @type {import("next").NextConfig} */
 export default {
+  experimental: { useTypeScriptCli: true },
   transpilePackages: [
     "@multitudes/auth",
     "@multitudes/ui",

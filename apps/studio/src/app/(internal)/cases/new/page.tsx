@@ -83,7 +83,7 @@ export default async function NewCasePage({
                 placeholder="What makes this answer correct and useful? Leave blank for assertions only."
               />
             </label>
-            <ModelFields judge provider="gemini" modelId="gemini-3.8-flash" />
+            <ModelFields judge modelId="gemini-3.8-flash" />
             <label>
               Pass threshold (0–1)
               <Input

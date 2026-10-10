@@ -12,6 +12,7 @@ import {
 } from "@opentelemetry/sdk-metrics";
 
 import { captureTraceContext, withSpan } from "../src/context";
+import { APP_VERSION, GIT_SHA } from "../src/health";
 import { createLogger } from "../src/logger";
 import { startTelemetry } from "../src/node";
 
@@ -24,6 +25,8 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
   });
   const spanNames: string[] = [];
   let exportedUrl: unknown;
+  process.env.OTEL_RESOURCE_ATTRIBUTES =
+    "service.version=runtime-override,version=runtime-override";
   const sdk = startTelemetry("signals-test", {
     sampler: {
       shouldSample: () => ({ decision: 2 }),
@@ -33,6 +36,11 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
       export(spans, done) {
         spanNames.push(...spans.map((span) => span.name));
         for (const span of spans) {
+          assert.equal(
+            span.resource.attributes["service.version"],
+            APP_VERSION,
+          );
+          assert.equal(span.resource.attributes.version, APP_VERSION);
           if (span.name === "GET /tasks")
             exportedUrl = span.attributes["http.url"];
         }
@@ -77,6 +85,15 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
     const records = logExporter.getFinishedLogRecords();
     assert.equal(records.length, 1);
     assert.equal(records[0]?.spanContext.traceId, traceId);
+    assert.equal(records[0].attributes.version, APP_VERSION);
+    assert.equal(
+      records[0].resource.attributes["service.version"],
+      APP_VERSION,
+    );
+    assert.equal(
+      records[0].resource.attributes["vcs.ref.head.revision"],
+      GIT_SHA,
+    );
     assert.equal(records[0].attributes.apiKey, "[REDACTED]");
     for (const secret of [
       "private-test-value",
@@ -104,6 +121,10 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
     assert.equal(access.attributes.route, "/tasks");
     assert.equal(access.attributes.trace_id, request.spanContext().traceId);
     const collected = await reader.collect();
+    assert.equal(
+      collected.resourceMetrics.resource.attributes["service.version"],
+      APP_VERSION,
+    );
     assert.ok(
       collected.resourceMetrics.scopeMetrics.some((scope) =>
         scope.metrics.some(

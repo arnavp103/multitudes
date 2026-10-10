@@ -89,5 +89,7 @@ jobs:
         uses: ./tooling/github/setup
       - name: PostgreSQL integration tests
         run: pnpm test:integration
-      - name: Build the internal studio
-        run: pnpm exec turbo run build --filter=@multitudes/studio... --filter=@multitudes/webapp...
+      - name: Build all applications
+        run: pnpm build:apps
+      - name: Health endpoints retain the build identity
+        run: pnpm test:health

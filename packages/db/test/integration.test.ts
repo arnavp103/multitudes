@@ -45,7 +45,7 @@ await test("atomic enqueue, attempt fencing and checkpoint persistence", async (
       input: "hello",
       ownerId: "alice",
       configuration: {
-        provider: "bedrock" as const,
+        provider: "gemini" as const,
         modelId: "test",
         systemPrompt: "test",
         codeVersion: "test",

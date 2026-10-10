@@ -12,7 +12,7 @@ import { createLogger } from "@multitudes/observability/logger";
 import { readStudioEnv } from "~/env";
 import { requireStaff, studioAuth } from "./access";
 
-const providerSchema = z.enum(["gemini", "deepseek", "bedrock", "openai"]);
+const providerSchema = z.literal("gemini");
 
 const logger = createLogger("multitudes-studio");
 
@@ -110,7 +110,7 @@ export async function startExperiment(form: FormData) {
 export async function sendPlayground(
   input: string,
   config: {
-    provider: "gemini" | "deepseek" | "bedrock" | "openai";
+    provider: "gemini";
     modelId: string;
     systemPrompt: string;
   },

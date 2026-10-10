@@ -3,6 +3,8 @@ import { context, isSpanContextValid, trace } from "@opentelemetry/api";
 import { logs } from "@opentelemetry/api-logs";
 import pino from "pino";
 
+import { APP_VERSION } from "./build-info.generated";
+
 /** Create JSON logs and export the same redacted records through the OTel provider. */
 export function createLogger(
   service: string,
@@ -48,7 +50,7 @@ export function createLogger(
   return pino(
     {
       level,
-      base: { service },
+      base: { service, version: APP_VERSION },
       serializers: { err: safeError },
       redact: {
         paths: [

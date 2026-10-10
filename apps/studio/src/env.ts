@@ -10,9 +10,7 @@ export function readStudioEnv() {
       AUTH_DISCORD_ID: z.string().min(1),
       AUTH_DISCORD_SECRET: z.string().min(1),
       AGENT_MODEL_ID: z.string().default("gemini-3.8-flash"),
-      AGENT_PROVIDER: z
-        .enum(["gemini", "deepseek", "bedrock", "openai"])
-        .default("gemini"),
+      AGENT_PROVIDER: z.literal("gemini").default("gemini"),
       AGENT_CODE_VERSION: z.string().min(1),
     })
     .parse(process.env);

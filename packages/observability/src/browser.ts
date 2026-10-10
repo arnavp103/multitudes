@@ -2,9 +2,12 @@
 
 import pino from "pino";
 
+import { APP_VERSION } from "./build-info.generated";
+
 /** Browser-only entrypoint: bounded metadata, no Node/OTel imports or network transport. */
 export const browserLogger = pino({
   level: "info",
+  base: { version: APP_VERSION },
   browser: { asObject: true },
 });
 

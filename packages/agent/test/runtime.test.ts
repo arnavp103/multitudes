@@ -51,7 +51,7 @@ function memoryStorage(): Storage {
   };
 }
 const configuration = {
-  provider: "bedrock" as const,
+  provider: "gemini" as const,
   modelId: "test-model",
   systemPrompt: "Answer briefly",
   codeVersion: "test",

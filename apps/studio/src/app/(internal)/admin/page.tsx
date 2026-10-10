@@ -222,9 +222,8 @@ export default async function AdminPage({
         provider-reported tokens, including cached input and thinking output
         where reported. They include retries and judge calls. Unknown pricing or
         missing usage is a cost gap, not zero. Unfinished requests can incur
-        charges even when usage is unavailable. Free credits, DeepSeek holiday
-        discounts, and billing adjustments require reconciliation with provider
-        invoices.
+        charges even when usage is unavailable. Free credits, discounts, and
+        billing adjustments require reconciliation with provider invoices.
       </p>
     </>
   );

@@ -12,7 +12,7 @@ import { JUDGE_PROMPT_VERSION } from "./prompts/judge";
 const logger = createLogger("multitudes-evals");
 
 export const judgeSchema = z.object({
-  provider: z.enum(["gemini", "deepseek"]),
+  provider: z.literal("gemini"),
   modelId: z.string().min(1).max(256),
   rubric: z.string().min(1).max(8000),
   threshold: z.number().min(0).max(1).default(0.8),

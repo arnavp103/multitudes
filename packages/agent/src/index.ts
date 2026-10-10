@@ -20,7 +20,7 @@ import { createTools } from "./tools";
 const logger = createLogger("multitudes-agent");
 
 export const configurationSchema = z.object({
-  provider: z.enum(["gemini", "deepseek", "bedrock", "openai"]),
+  provider: z.literal("gemini"),
   modelId: z.string().min(1).max(256),
   systemPrompt: z.string().min(1).max(32_000),
   codeVersion: z.string().min(1).max(128),

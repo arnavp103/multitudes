@@ -22,7 +22,7 @@ export function Playground({
   provider,
   modelId,
 }: {
-  provider: "gemini" | "deepseek" | "bedrock" | "openai";
+  provider: "gemini";
   modelId: string;
 }) {
   const [config, setConfig] = useState({
@@ -45,27 +45,7 @@ export function Playground({
         <CardContent className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="provider">Provider</Label>
-            <select
-              id="provider"
-              value={config.provider}
-              onChange={(event) =>
-                setConfig({
-                  ...config,
-                  provider: event.target.value as typeof config.provider,
-                  modelId:
-                    event.target.value === "gemini"
-                      ? "gemini-3.8-flash"
-                      : event.target.value === "deepseek"
-                        ? "deepseek-flash"
-                        : "",
-                })
-              }
-            >
-              <option value="gemini">Gemini AI Studio</option>
-              <option value="deepseek">DeepSeek</option>
-              <option value="bedrock">AWS Bedrock</option>
-              <option value="openai">OpenAI</option>
-            </select>
+            <Input id="provider" value="Gemini AI Studio" readOnly />
           </div>
           <div className="space-y-2">
             <Label htmlFor="model">Model ID</Label>
