@@ -25,7 +25,7 @@ The steps below configure an existing database instead.
 
 2. Get access to the environment files. `.env`, `.env.staging`, and `.env.production` are committed, encrypted with [dotenvx](https://dotenvx.com); there is no template to copy. Ask a maintainer for the matching private keys and keep them in the ignored `.env.keys` file (or export them as `DOTENV_PRIVATE_KEY`, `DOTENV_PRIVATE_KEY_STAGING`, and `DOTENV_PRIVATE_KEY_PRODUCTION`).
 
-   Change a value with `pnpm exec dotenvx set <KEY> <value> -f <file>`, which encrypts it in place; remove an unused key by deleting its line. The apps read `POSTGRES_URL`, `AUTH_SECRET` (32+ characters; generate with `openssl rand -base64 32`), `WEBAPP_URL`, `STUDIO_URL`, `GEMINI_API_KEY`, and `AGENT_CODE_VERSION`, plus optional `AGENT_MODEL_ID`, `LOG_LEVEL`, `WORKER_CONCURRENCY`, `PORT`, and standard `OTEL_*` settings.
+   Change a value with `pnpm exec dotenvx set <KEY> <value> -f <file>`, which encrypts it in place; remove an unused key by deleting its line. The apps read `POSTGRES_URL`, `AUTH_SECRET` (32+ characters; generate with `openssl rand -base64 32`), `WEBAPP_URL`, `STUDIO_URL`, `GEMINI_API_KEY`, and `AGENT_CODE_VERSION`, plus optional `AGENT_MODEL_ID`, `LOG_LEVEL`, `WORKER_CONCURRENCY`, `PORT`, standard `OTEL_*` settings, and `AUTH_PRODUCTION_URL` / `STUDIO_AUTH_PRODUCTION_URL` (OAuth proxy origins for preview deployments).
 
    Run commands with a selected environment file using `pnpm exec dotenvx run -f .env.staging -- <command>` or `pnpm exec dotenvx run -f .env.production -- <command>`. Provide the matching `DOTENV_PRIVATE_KEY_*` values to deployment environments and never commit `.env.keys*`.
 
