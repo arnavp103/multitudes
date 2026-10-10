@@ -3,7 +3,7 @@ import { readStudioEnv } from "~/env";
 import { requireStaff } from "~/server/access";
 
 export default async function PlaygroundPage() {
-  await requireStaff();
+  await requireStaff("execute");
   const env = readStudioEnv();
   return (
     <>

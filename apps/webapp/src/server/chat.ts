@@ -14,12 +14,13 @@ import { env } from "~/env";
 const logger = createLogger("multitudes-webapp");
 
 /** Use server-selected configuration and the authenticated owner, never client identity. */
-export async function sendTask(input: string) {
+export async function sendTask(input: string, requestKey: string) {
   const session = await getSession();
   if (!session) throw new Error("Sign in to start a task");
   return withSpan("webapp.submit_task", {}, async () => {
     const id = await submitRun({
       input,
+      requestKey,
       ownerId: session.user.id,
       configuration: {
         provider: env.AGENT_PROVIDER,

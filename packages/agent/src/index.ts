@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { Model, Storage } from "@strands-agents/sdk";
 import {
   AfterModelCallEvent,
@@ -87,18 +88,33 @@ export function createAgent(options: {
 /** Public server-side SDK entrypoint; returns immediately with the durable run ID. */
 export async function submitRun(input: {
   input: string;
-  ownerId?: string;
+  ownerId: string;
+  requestKey: string;
   configuration: AgentConfiguration;
 }) {
-  const [id] = await enqueueRuns([
+  const configuration = configurationSchema.parse(input.configuration);
+  const text = inputSchema.parse(input.input);
+  const requestKey = z.uuid().parse(input.requestKey);
+  const fingerprint = createHash("sha256")
+    .update(JSON.stringify({ operation: "task", text, configuration }))
+    .digest("hex");
+  const [id] = await enqueueRuns(
+    [
+      {
+        input: text,
+        configuration,
+        mode: "production",
+        ownerId: input.ownerId,
+        traceContext: captureTraceContext(),
+      },
+    ],
+    undefined,
     {
-      input: inputSchema.parse(input.input),
-      configuration: configurationSchema.parse(input.configuration),
-      mode: "production",
-      ownerId: input.ownerId,
-      traceContext: captureTraceContext(),
+      ownerId: z.string().min(1).parse(input.ownerId),
+      key: requestKey,
+      fingerprint,
     },
-  ]);
+  );
   if (!id) throw new Error("Run was not created");
   logger.info({ run_id: id }, "Agent run submitted");
   return id;

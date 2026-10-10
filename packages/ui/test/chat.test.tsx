@@ -23,7 +23,10 @@ describe("durable chat", () => {
     fireEvent.click(send);
     fireEvent.click(send);
     await screen.findByText(done.output);
-    expect(submit).toHaveBeenCalledExactlyOnceWith(done.input);
+    expect(submit).toHaveBeenCalledExactlyOnceWith(
+      done.input,
+      expect.any(String),
+    );
     expect(window.location.search).toBe("?run=run-1");
     fireEvent.click(screen.getByRole("button", { name: "New task" }));
     expect(window.location.search).toBe("");
@@ -60,6 +63,28 @@ describe("durable chat", () => {
     expect(screen.getByRole<HTMLTextAreaElement>("textbox").value).toBe(
       "keep this draft",
     );
+  });
+
+  it("reuses a durable key after a lost response and reload", async () => {
+    const submit = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("response lost"))
+      .mockResolvedValue({ id: done.id });
+    const poll = vi.fn().mockResolvedValue(done);
+    const first = render(<AgentChat submit={submit} poll={poll} />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Task" }), {
+      target: { value: done.input },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send task" }));
+    await screen.findByRole("alert");
+    first.unmount();
+    render(<AgentChat submit={submit} poll={poll} />);
+    expect(
+      screen.getByRole<HTMLTextAreaElement>("textbox", { name: "Task" }).value,
+    ).toBe(done.input);
+    fireEvent.click(screen.getByRole("button", { name: "Send task" }));
+    await screen.findByText(done.output);
+    expect(submit.mock.calls[1]?.[1]).toBe(submit.mock.calls[0]?.[1]);
   });
 
   it("does not submit during IME composition", () => {

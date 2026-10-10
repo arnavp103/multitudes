@@ -1,5 +1,7 @@
+import { randomUUID } from "node:crypto";
 import Link from "next/link";
 
+import { canAccessStudio } from "@multitudes/auth/permissions";
 import { listRuns } from "@multitudes/db/runs";
 import { Button } from "@multitudes/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@multitudes/ui/card";
@@ -19,7 +21,7 @@ import { requireStaff } from "~/server/access";
 import { startRun } from "~/server/actions";
 
 export default async function RunsPage() {
-  await requireStaff();
+  const session = await requireStaff();
   const runs = await listRuns();
   return (
     <>
@@ -112,20 +114,23 @@ export default async function RunsPage() {
         </section>
         <section className="panel">
           <h2>Run a task</h2>
-          <form action={startRun}>
-            <label>
-              Task
-              <Textarea
-                name="input"
-                rows={4}
-                required
-                maxLength={64000}
-                placeholder="What should the agent do?"
-              />
-            </label>
-            <ConfigurationFields />
-            <Button>Queue run</Button>
-          </form>
+          {canAccessStudio(session.user.role, "execute") && (
+            <form action={startRun}>
+              <input type="hidden" name="requestKey" value={randomUUID()} />
+              <label>
+                Task
+                <Textarea
+                  name="input"
+                  rows={4}
+                  required
+                  maxLength={64000}
+                  placeholder="What should the agent do?"
+                />
+              </label>
+              <ConfigurationFields />
+              <Button>Queue run</Button>
+            </form>
+          )}
         </section>
       </div>
     </>

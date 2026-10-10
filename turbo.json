@@ -3,25 +3,42 @@
   "ui": "tui",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": [".cache/tsbuildinfo.json", "dist/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".cache/tsbuildinfo.json",
+        "dist/**"
+      ]
     },
     "dev": {
-      "dependsOn": ["^dev"],
+      "dependsOn": [
+        "^dev"
+      ],
       "cache": false,
       "persistent": false
     },
     "format": {
-      "outputs": [".cache/.prettiercache"],
+      "outputs": [
+        ".cache/.prettiercache"
+      ],
       "outputLogs": "new-only"
     },
     "lint": {
-      "dependsOn": ["^build"],
-      "outputs": [".cache/.eslintcache"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".cache/.eslintcache"
+      ]
     },
     "typecheck": {
-      "dependsOn": ["^build"],
-      "outputs": [".cache/tsbuildinfo.json"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".cache/tsbuildinfo.json"
+      ]
     },
     "clean": {
       "cache": false
@@ -42,12 +59,16 @@
       "interactive": true
     },
     "test:unit": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "outputs": [],
       "cache": false
     },
     "test:integration": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "outputs": [],
       "cache": false
     }
@@ -59,13 +80,15 @@
     "AUTH_SECRET",
     "PORT",
     "STUDIO_URL",
-    "STUDIO_ALLOWED_EMAILS",
     "AGENT_MODEL_ID",
     "AGENT_PROVIDER",
     "AGENT_CODE_VERSION",
     "WORKER_CONCURRENCY",
     "LOG_LEVEL",
-    "APP_VERSION"
+    "APP_VERSION",
+    "WEBAPP_URL",
+    "AUTH_PRODUCTION_URL",
+    "STUDIO_AUTH_PRODUCTION_URL"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",

@@ -42,10 +42,11 @@ function configuration(form: FormData) {
 
 /** Queue an interactive test without keeping the HTTP request open for the model. */
 export async function startRun(form: FormData) {
-  const session = await requireStaff();
+  const session = await requireStaff("execute");
   const id = await withSpan("studio.submit_run", {}, () =>
     submitRun({
       input: field(form, "input"),
+      requestKey: field(form, "requestKey"),
       ownerId: session.user.id,
       configuration: configuration(form),
     }),
@@ -56,7 +57,7 @@ export async function startRun(form: FormData) {
 
 /** Save an explicit expected outcome; production output is never treated as ground truth. */
 export async function saveCase(form: FormData) {
-  await requireStaff();
+  await requireStaff("author");
   const lines = (name: string) =>
     field(form, name)
       .split("\n")
@@ -90,10 +91,12 @@ export async function saveCase(form: FormData) {
 
 /** Freeze selected cases and configuration before creating the experiment jobs. */
 export async function startExperiment(form: FormData) {
-  await requireStaff();
+  const session = await requireStaff("execute");
   const id = await withSpan("studio.launch_experiment", {}, () =>
     launchExperiment({
       name: field(form, "name"),
+      ownerId: session.user.id,
+      requestKey: field(form, "requestKey"),
       caseIds: form.getAll("caseId").map((value) => {
         if (typeof value !== "string") throw new Error("Invalid case ID");
         return value;
@@ -109,16 +112,18 @@ export async function startExperiment(form: FormData) {
 /** Playground requests share the same staff boundary and durable runtime as evals. */
 export async function sendPlayground(
   input: string,
+  requestKey: string,
   config: {
     provider: "gemini";
     modelId: string;
     systemPrompt: string;
   },
 ) {
-  const session = await requireStaff();
+  const session = await requireStaff("execute");
   const id = await withSpan("studio.playground.submit", {}, () =>
     submitRun({
       input,
+      requestKey,
       ownerId: session.user.id,
       configuration: {
         ...config,

@@ -1,41 +1,29 @@
 # Agent platform
 
 The existing `apps/webapp` remains the product app. `apps/studio` is a separate,
-allowlisted Next.js application on port 3001. `apps/backend` is a long-lived Node
+role-protected Next.js application on port 3001. `apps/backend` is a long-lived Node
 worker. Production integrations and eval trials use the same `packages/agent`
 factory. No sandbox provider, shell/file tool, vector store, or long-term memory
 is configured.
 
 ## Start locally
 
-1. Run PostgreSQL 17 or connect to a development database. Set `POSTGRES_URL` in
-   your local environment using the repository's existing dotenvx workflow.
-2. Run `pnpm install`, then `pnpm db:migrate` to create the agent tables. On a
-   fresh database, run `pnpm db:push` afterwards to initialize the existing
-   auth/template tables. Apply migrations before `db:push` so the initial
-   migration does not encounter tables already created by schema push.
-3. Set `AUTH_SECRET` (32+ characters), Discord credentials, `STUDIO_URL`,
-   `STUDIO_ALLOWED_EMAILS`, `AGENT_PROVIDER`, `AGENT_MODEL_ID`, and
-   `AGENT_CODE_VERSION`. Use the same code version in the studio and worker;
-   locally `local` is sufficient. Production should use the deployed Git SHA.
-4. Register `http://localhost:3001/api/auth/callback/discord` with Discord as an
-   additional redirect URL. The product app retains its own callback URL.
-5. Set `GEMINI_API_KEY` for Gemini AI Studio.
-   The defaults are `AGENT_PROVIDER=gemini` and `AGENT_MODEL_ID=gemini-3.8-flash`.
-6. Run `pnpm dev:backend` and `pnpm dev:studio` in separate terminals. Open
-   http://localhost:3001 and sign in with an allowlisted, verified email.
+Run `pnpm install`, then `pnpm dev:up`. This starts an isolated Postgres database,
+webapp, Studio, and worker for the current checkout. Sign in with
+`pnpm dev:login studio admin`. See [development.md](development.md) for prerequisites,
+fixture/live model modes, concurrent worktrees, and authenticated browser tests.
 
-The studio denies access when the allowlist is empty. Every page query and
-server action checks access; hiding navigation is not the authorization boundary.
-The studio uses Node runtime, not Edge. Production secrets stay server-side.
-The studio is internal and should have a separately restricted deployment.
+For manually managed environments, set `POSTGRES_URL`, app URLs, a 32+ character
+`AUTH_SECRET`, Discord credentials, `GEMINI_API_KEY`, and `AGENT_CODE_VERSION`.
+Run `pnpm db:migrate` before deployment. It applies both the core/auth baseline
+and additive agent migrations, using separate journals. Existing schema-pushed
+installations must be checked against the baseline before adoption. pg-boss still
+manages its own `pgboss` schema at startup. Bootstrap a verified administrator
+with `pnpm auth:bootstrap-admin <email>`; runtime email allowlists are no longer used.
 
-`pnpm db:generate` generates migrations only for `agent-schema.ts`. They use a
-separate migration journal (`drizzle.agent_migrations`) so adopting this platform
-does not pretend the existing template/auth tables have a migration baseline.
-The existing `db:push`/auth generation workflow remains available. The initial
-agent migration adds only new tables. pg-boss manages its own `pgboss` schema at
-startup, requiring a database role with schema/table creation privileges.
+Every Studio page query and server action checks role permissions. Apps and worker
+share the same agent code version. Studio uses the Node runtime and keeps secrets
+server-side; treat it as an internal deployment.
 
 ## Use the backend as an SDK
 
@@ -43,6 +31,8 @@ startup, requiring a database role with schema/table creation privileges.
 import { submitRun } from "@multitudes/agent";
 
 const runId = await submitRun({
+  ownerId: session.user.id,
+  requestKey, // caller UUID: reuse for retries of this exact user intent
   input: "Summarize this request...",
   configuration: {
     provider: "gemini",
@@ -175,7 +165,7 @@ retrying. No automatic resubmission is performed.
 Product reads enforce `agent_run.owner_id` against the authenticated session. Old
 runs without an owner remain visible only through staff-protected studio routes.
 Run the new additive migration before using product chat. Studio pages and actions
-continue to require the verified-email allowlist; there is no development bypass.
+continue to require the verified-account role checks; there is no development bypass.
 
 ## Logging conventions
 
@@ -237,7 +227,7 @@ charges without reported usage still need invoice reconciliation.
 `/admin` in studio aggregates 1/7/30-day windows: execution success, pending and
 retried runs, p95 queue-to-finish latency, eval pass rate, judge mean score, model
 usage by purpose, daily calls, estimates, and unknown-cost/unfinished-call counts.
-It is protected by the same verified-email allowlist as the rest of studio.
+It is protected by the same verified-account role checks as the rest of studio.
 
 Prices live in `packages/ai/src/pricing.ts`; snapshots are never retroactively
 rewritten. Verified 2026-10-10 against:

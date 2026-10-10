@@ -1,24 +1,13 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { test } from "node:test";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
-import pg from "pg";
+
+import { createTestDatabase } from "../src/testing";
 
 /** CI supplies a dedicated, disposable PostgreSQL database, never a production URL. */
 await test("atomic enqueue, attempt fencing and checkpoint persistence", async () => {
-  if (!process.env.TEST_POSTGRES_URL)
-    throw new Error(
-      "test:integration requires TEST_POSTGRES_URL pointing to a disposable Postgres server with CREATEDB permission",
-    );
-  const admin = new pg.Pool({
-    connectionString: process.env.TEST_POSTGRES_URL,
-  });
-  const database = `multitudes_test_${randomUUID().replaceAll("-", "")}`;
-  await admin.query(`CREATE DATABASE "${database}"`);
-  const url = new URL(process.env.TEST_POSTGRES_URL);
-  url.pathname = `/${database}`;
-  process.env.POSTGRES_URL = url.toString();
+  const database = await createTestDatabase();
+  process.env.POSTGRES_URL = database.url;
   const { pool } = await import("../src/client");
   const { getQueue, RUN_QUEUE } = await import("../src/queue");
   const {
@@ -34,12 +23,6 @@ await test("atomic enqueue, attempt fencing and checkpoint persistence", async (
   } = await import("../src/runs");
   let queue: Awaited<ReturnType<typeof getQueue>> | undefined;
   try {
-    await migrate(drizzle(pool), {
-      migrationsFolder: new URL("../migrations/agents", import.meta.url)
-        .pathname,
-      migrationsSchema: "drizzle",
-      migrationsTable: "agent_migrations",
-    });
     queue = await getQueue();
     const value = {
       input: "hello",
@@ -131,6 +114,49 @@ await test("atomic enqueue, attempt fencing and checkpoint persistence", async (
       1,
       "failed transaction must not leave an orphan queue job",
     );
+    const key = randomUUID();
+    const receipt = { ownerId: "alice", key, fingerprint: "same-request" };
+    const results = await Promise.all(
+      Array.from({ length: 8 }, () => enqueueRuns([value], undefined, receipt)),
+    );
+    assert.equal(
+      new Set(results.map(([id]) => id)).size,
+      1,
+      "concurrent retries must share one run",
+    );
+    assert.deepEqual(
+      await enqueueRuns([value], undefined, receipt),
+      results[0],
+      "lost response replay returns the original run",
+    );
+    await assert.rejects(
+      enqueueRuns([value], undefined, { ...receipt, fingerprint: "changed" }),
+      /different request/,
+    );
+    const otherOwner = await enqueueRuns(
+      [{ ...value, ownerId: "bob" }],
+      undefined,
+      { ...receipt, ownerId: "bob" },
+    );
+    assert.notDeepEqual(otherOwner, results[0]);
+    const failedKey = randomUUID();
+    await assert.rejects(
+      enqueueRuns([{ ...value, experimentId: randomUUID() }], undefined, {
+        ...receipt,
+        key: failedKey,
+      }),
+    );
+    const retried = await enqueueRuns([value], undefined, {
+      ...receipt,
+      key: failedKey,
+    });
+    assert.equal(
+      retried.length,
+      1,
+      "rolled-back admission key remains reusable",
+    );
+    const queued = await queue.findJobs(RUN_QUEUE);
+    assert.equal(queued.filter((job) => job.id === results[0]?.[0]).length, 1);
     const [cancelledId] = await enqueueRuns([value]);
     assert.ok(cancelledId);
     await beginAttempt(cancelledId, 1);
@@ -148,10 +174,6 @@ await test("atomic enqueue, attempt fencing and checkpoint persistence", async (
   } finally {
     await queue?.stop();
     await pool.end();
-    try {
-      await admin.query(`DROP DATABASE "${database}" WITH (FORCE)`);
-    } finally {
-      await admin.end();
-    }
+    await database.close();
   }
 });

@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod/v4";
 
 import type { AgentConfiguration, EvalAssertion } from "@multitudes/db/schema";
@@ -73,6 +73,8 @@ export async function authorCase(input: unknown) {
 /** Freeze a configuration and enqueue every trial atomically with its experiment. */
 export async function launchExperiment(input: {
   name: string;
+  ownerId: string;
+  requestKey: string;
   caseIds: string[];
   configuration: AgentConfiguration;
   repetitions?: number;
@@ -103,12 +105,35 @@ export async function launchExperiment(input: {
         }))
       : [],
   );
-  await enqueueRuns(runs, { id, name, configuration });
+  const fingerprint = createHash("sha256")
+    .update(
+      JSON.stringify({
+        operation: "experiment",
+        name,
+        caseIds: [...new Set(caseIds)].sort(),
+        repetitions,
+        configuration,
+      }),
+    )
+    .digest("hex");
+  const ids = await enqueueRuns(
+    runs,
+    { id, name, configuration },
+    {
+      ownerId: z.string().min(1).parse(input.ownerId),
+      key: z.uuid().parse(input.requestKey),
+      fingerprint,
+    },
+  );
+  const experimentId = ids[0]
+    ? (await getRun(ids[0]))?.experimentId
+    : undefined;
+  if (!experimentId) throw new Error("Experiment was not created");
   logger.info(
     { experiment_id: id, trial_count: runs.length },
     "Experiment launched",
   );
-  return id;
+  return experimentId;
 }
 
 export { judgeOutput, parseVerdict } from "./judge";

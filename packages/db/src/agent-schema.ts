@@ -157,3 +157,17 @@ export const ModelCall = pgTable(
     index("model_call_started_idx").on(t.startedAt),
   ],
 );
+
+/** Admission receipt: a committed request key always resolves to the same jobs. */
+export const Submission = pgTable(
+  "submission",
+  (t) => ({
+    id: t.uuid().primaryKey().defaultRandom(),
+    ownerId: t.text().notNull(),
+    key: t.uuid().notNull(),
+    fingerprint: t.text().notNull(),
+    runIds: t.uuid().array().notNull(),
+    createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
+  }),
+  (t) => [uniqueIndex("submission_owner_key_idx").on(t.ownerId, t.key)],
+);

@@ -21,7 +21,8 @@ import { initAuth } from "../src/index";
 export const auth = initAuth({
   baseUrl: "http://localhost:3000",
   productionUrl: "http://localhost:3000",
-  secret: "secret",
+  secret: "schema-generation-only-not-a-runtime-secret",
+  cookiePrefix: "multitudes-webapp",
   discordClientId: "1234567890",
   discordClientSecret: "1234567890",
 });

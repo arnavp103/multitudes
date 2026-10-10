@@ -36,6 +36,32 @@ export interface ChatSnapshot {
   error: string | null;
 }
 
+/** Recover only our own well-formed pending request; malformed browser state is discarded. */
+function pendingSubmission(storageKey: string) {
+  try {
+    const value: unknown = JSON.parse(
+      sessionStorage.getItem(storageKey) ?? "null",
+    );
+    if (
+      value &&
+      typeof value === "object" &&
+      "input" in value &&
+      typeof value.input === "string" &&
+      "scope" in value &&
+      typeof value.scope === "string" &&
+      "key" in value &&
+      typeof value.key === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        value.key,
+      )
+    )
+      return { input: value.input, scope: value.scope, key: value.key };
+  } catch {
+    /* A malformed entry is not an admission receipt. */
+  }
+  return null;
+}
+
 /** Read-only transcript, reused for the product workspace and persisted studio runs. */
 export function RunConversation({ run }: { run: ChatSnapshot }) {
   const [copied, setCopied] = useState(false);
@@ -111,12 +137,14 @@ export function RunConversation({ run }: { run: ChatSnapshot }) {
 /** Durable task UI: only the run ID goes in the URL; reconnecting never resubmits a task. */
 export function AgentChat({
   submit,
+  submissionScope = "default",
   poll,
   disabled = false,
   modelLabel = "Agent",
   runHref,
 }: {
-  submit: (input: string) => Promise<{ id: string }>;
+  submit: (input: string, requestKey: string) => Promise<{ id: string }>;
+  submissionScope?: string;
   poll: (id: string) => Promise<ChatSnapshot>;
   disabled?: boolean;
   modelLabel?: string;
@@ -136,6 +164,13 @@ export function AgentChat({
     // The URL is an external browser store, read after hydration.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (id) setRunId(id);
+    else {
+      const pending = pendingSubmission(
+        `multitudes:pending:${window.location.pathname}`,
+      );
+
+      if (pending) setDraft(pending.input);
+    }
   }, []);
 
   useEffect(() => {
@@ -181,7 +216,20 @@ export function AgentChat({
     setSubmitting(true);
     setError(null);
     try {
-      const { id } = await submit(draft.trim());
+      const text = draft.trim();
+      const storageKey = `multitudes:pending:${window.location.pathname}`;
+      const saved = pendingSubmission(storageKey);
+      const key =
+        saved?.input === text && saved.scope === submissionScope
+          ? saved.key
+          : crypto.randomUUID();
+      // Persist before sending: losing the response must not create a second job on retry.
+      sessionStorage.setItem(
+        storageKey,
+        JSON.stringify({ input: text, scope: submissionScope, key }),
+      );
+      const { id } = await submit(text, key);
+      sessionStorage.removeItem(storageKey);
       setRun({
         id,
         input: draft.trim(),
@@ -194,7 +242,7 @@ export function AgentChat({
     } catch (cause) {
       reportClientError("chat-submit", cause);
       setError(
-        "We could not confirm submission. Check your runs before retrying; your draft is preserved.",
+        "We could not confirm submission. Retry safely with the same task; your draft is preserved.",
       );
     } finally {
       submittingRef.current = false;

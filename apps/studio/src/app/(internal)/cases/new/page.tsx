@@ -14,7 +14,7 @@ export default async function NewCasePage({
 }: {
   searchParams: Promise<{ sourceRunId?: string }>;
 }) {
-  await requireStaff();
+  await requireStaff("author");
   const { sourceRunId } = await searchParams;
   const source =
     sourceRunId && z.uuid().safeParse(sourceRunId).success

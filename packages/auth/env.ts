@@ -8,12 +8,17 @@ export function authEnv() {
       AUTH_DISCORD_SECRET: z.string().min(1),
       AUTH_SECRET:
         process.env.NODE_ENV === "production"
-          ? z.string().min(1)
-          : z.string().min(1).optional(),
-      NODE_ENV: z.enum(["development", "production"]).optional(),
+          ? z.string().min(32)
+          : z.string().min(32).optional(),
+      NODE_ENV: z.enum(["development", "production", "test"]).optional(),
     },
     runtimeEnv: process.env,
     skipValidation:
       !!process.env.CI || process.env.npm_lifecycle_event === "lint",
   });
+}
+
+/** Test helpers must fail closed when loaded in a production process. */
+export function isProductionRuntime() {
+  return process.env.NODE_ENV === "production";
 }
