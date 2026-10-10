@@ -20,6 +20,7 @@ import {
   Submission,
 } from "./agent-schema";
 import { db, pool } from "./client";
+import { transactionEvents, withEvents } from "./events";
 import { getQueue, RUN_QUEUE } from "./queue";
 
 const logger = createLogger("multitudes-db");
@@ -42,6 +43,7 @@ export async function enqueueRuns(
   try {
     await client.query("BEGIN");
     const transaction = drizzle({ client, casing: "snake_case" });
+    const events = transactionEvents(transaction);
     const ids = runs.map(() => randomUUID());
     if (submission) {
       const inserted = await transaction
@@ -81,8 +83,40 @@ export async function enqueueRuns(
         },
       );
       if (!job) throw new Error("Queue rejected run");
+      await events.emit({
+        name: "task.submitted",
+        version: 1,
+        actorId: run.ownerId ?? null,
+        subjectType: "run",
+        subjectId: id,
+        runId: id,
+        idempotencyKey: `task.submitted:${id}`,
+        payload: {
+          mode: run.mode,
+          provider: run.configuration.provider,
+          modelId: run.configuration.modelId,
+          promptVersion: run.configuration.promptVersion ?? null,
+          experimentId: run.experimentId ?? null,
+          caseId: run.caseId ?? null,
+        },
+      });
     }
+    if (experiment)
+      await events.emit({
+        name: "experiment.launched",
+        version: 1,
+        actorId: submission?.ownerId ?? null,
+        subjectType: "experiment",
+        subjectId: experiment.id,
+        idempotencyKey: `experiment.launched:${experiment.id}`,
+        payload: {
+          trialCount: runs.length,
+          caseCount: new Set(runs.map((run) => run.caseId).filter(Boolean))
+            .size,
+        },
+      });
     await client.query("COMMIT");
+    events.publish();
     logger.info(
       { run_count: ids.length, experiment_id: experiment?.id },
       "Runs committed to queue",
@@ -128,17 +162,49 @@ export function listCases() {
 export async function getCase(id: string) {
   return (await db.select().from(EvalCase).where(eq(EvalCase.id, id)))[0];
 }
-export async function createCase(value: {
-  name: string;
-  dataset: string;
-  input: string;
-  assertions: EvalAssertion[];
-  sourceRunId?: string;
-  toolFixtures?: TaskFixtures;
-  judge?: JudgeConfig;
-}) {
-  const [result] = await db.insert(EvalCase).values(value).returning();
-  return result;
+export async function createCase(
+  value: {
+    name: string;
+    dataset: string;
+    input: string;
+    assertions: EvalAssertion[];
+    sourceRunId?: string;
+    toolFixtures?: TaskFixtures;
+    judge?: JudgeConfig;
+  },
+  actorId: string | null = null,
+) {
+  return withEvents(async (tx, emit) => {
+    const [result] = await tx.insert(EvalCase).values(value).returning();
+    if (!result) throw new Error("Eval case was not created");
+    await emit({
+      name: "eval.case_created",
+      version: 1,
+      actorId,
+      subjectType: "eval_case",
+      subjectId: result.id,
+      runId: result.sourceRunId,
+      idempotencyKey: `eval.case_created:${result.id}`,
+      payload: {
+        dataset: result.dataset,
+        assertionCount: result.assertions.length,
+        hasJudge: !!result.judge,
+        sourceRunId: result.sourceRunId,
+      },
+    });
+    if (result.sourceRunId)
+      await emit({
+        name: "task.promoted_to_eval",
+        version: 1,
+        actorId,
+        subjectType: "run",
+        subjectId: result.sourceRunId,
+        runId: result.sourceRunId,
+        idempotencyKey: `task.promoted_to_eval:${result.sourceRunId}:${result.id}`,
+        payload: { caseId: result.id, dataset: result.dataset },
+      });
+    return result;
+  });
 }
 export function listExperiments() {
   return db
@@ -158,33 +224,50 @@ export function getExperimentRuns(id: string) {
 
 /** Retry count is a fencing token: older workers cannot write after a newer attempt starts. */
 export async function beginAttempt(id: string, attempt: number) {
-  const [run] = await db
-    .update(AgentRun)
-    .set({
-      attempts: attempt,
-      status: "running",
-      error: null,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(AgentRun.id, id),
-        sql`${AgentRun.attempts} < ${attempt}`,
-        sql`${AgentRun.status} <> 'completed'`,
-      ),
-    )
-    .returning();
-  return run;
+  return withEvents(async (tx, emit) => {
+    const [run] = await tx
+      .update(AgentRun)
+      .set({
+        attempts: attempt,
+        status: "running",
+        error: null,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(AgentRun.id, id),
+          sql`${AgentRun.attempts} < ${attempt}`,
+          sql`${AgentRun.status} in ('queued', 'running')`,
+        ),
+      )
+      .returning();
+    if (run)
+      await emit({
+        name: "task.started",
+        version: 1,
+        actorId: null,
+        subjectType: "run",
+        subjectId: id,
+        runId: id,
+        idempotencyKey: `task.started:${id}:${attempt}`,
+        payload: { mode: run.mode, attempt },
+      });
+    return run;
+  });
 }
 
 export async function withAttempt<T>(
   runId: string,
   attempt: number,
-  fn: (tx: Parameters<Parameters<typeof db.transaction>[0]>[0]) => Promise<T>,
+  fn: (
+    tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+    emit: ReturnType<typeof transactionEvents>["emit"],
+    run: Pick<Run, "id" | "mode">,
+  ) => Promise<T>,
 ) {
-  return db.transaction(async (tx) => {
+  return withEvents(async (tx, emit) => {
     const [run] = await tx
-      .select({ id: AgentRun.id })
+      .select({ id: AgentRun.id, mode: AgentRun.mode })
       .from(AgentRun)
       .where(
         and(
@@ -195,7 +278,7 @@ export async function withAttempt<T>(
       )
       .for("update");
     if (!run) throw new Error("Run attempt superseded");
-    return fn(tx);
+    return fn(tx, emit, run);
   });
 }
 
@@ -228,7 +311,7 @@ export async function finishRun(
     };
   },
 ) {
-  await withAttempt(runId, attempt, async (tx) => {
+  await withAttempt(runId, attempt, async (tx, emit, run) => {
     if (score)
       await tx
         .insert(EvalScore)
@@ -238,6 +321,16 @@ export async function finishRun(
       .update(AgentRun)
       .set({ status: "completed", output, error: null, updatedAt: new Date() })
       .where(eq(AgentRun.id, runId));
+    await emit({
+      name: "task.completed",
+      version: 1,
+      actorId: null,
+      subjectType: "run",
+      subjectId: runId,
+      runId,
+      idempotencyKey: `task.terminal:${runId}`,
+      payload: { mode: run.mode, attempt, evalPassed: score?.passed ?? null },
+    });
   });
 }
 export async function failRun(
@@ -246,7 +339,7 @@ export async function failRun(
   error: string,
   retry: boolean,
 ) {
-  await withAttempt(runId, attempt, async (tx) => {
+  await withAttempt(runId, attempt, async (tx, emit, run) => {
     await tx
       .update(AgentRun)
       .set({
@@ -255,6 +348,27 @@ export async function failRun(
         updatedAt: new Date(),
       })
       .where(eq(AgentRun.id, runId));
+    const subject = {
+      version: 1 as const,
+      actorId: null,
+      subjectType: "run" as const,
+      subjectId: runId,
+      runId,
+    };
+    if (retry)
+      await emit({
+        ...subject,
+        name: "task.retry_scheduled",
+        idempotencyKey: `task.retry_scheduled:${runId}:${attempt}`,
+        payload: { mode: run.mode, attempt },
+      });
+    else
+      await emit({
+        ...subject,
+        name: "task.failed",
+        idempotencyKey: `task.terminal:${runId}`,
+        payload: { mode: run.mode, attempt, reason: "execution" },
+      });
   });
 }
 
@@ -329,21 +443,45 @@ export async function reconcileRuns() {
     for (const run of candidates) {
       const job = await queue.getJobById(RUN_QUEUE, run.id);
       if (!job || ["failed", "cancelled", "completed"].includes(job.state)) {
-        await db
-          .update(AgentRun)
-          .set({
-            status: "failed",
-            error: `Queue job ${job?.state ?? "missing"} without a committed run result`,
-            updatedAt: new Date(),
-          })
-          .where(
-            and(
-              eq(AgentRun.id, run.id),
-              eq(AgentRun.attempts, run.attempts),
-              sql`${AgentRun.updatedAt} = ${run.updatedAt}::timestamptz`,
-              sql`${AgentRun.status} in ('queued', 'running')`,
-            ),
-          );
+        await withEvents(async (tx, emit) => {
+          const [failed] = await tx
+            .update(AgentRun)
+            .set({
+              status: "failed",
+              error: `Queue job ${job?.state ?? "missing"} without a committed run result`,
+              updatedAt: new Date(),
+            })
+            .where(
+              and(
+                eq(AgentRun.id, run.id),
+                eq(AgentRun.attempts, run.attempts),
+                sql`${AgentRun.updatedAt} = ${run.updatedAt}::timestamptz`,
+                sql`${AgentRun.status} in ('queued', 'running')`,
+              ),
+            )
+            .returning();
+          if (failed)
+            await emit({
+              name: "task.failed",
+              version: 1,
+              actorId: null,
+              subjectType: "run",
+              subjectId: failed.id,
+              runId: failed.id,
+              idempotencyKey: `task.terminal:${failed.id}`,
+              payload: {
+                mode: failed.mode,
+                attempt: failed.attempts,
+                reason: !job
+                  ? "queue_missing"
+                  : job.state === "failed"
+                    ? "queue_failed"
+                    : job.state === "cancelled"
+                      ? "queue_cancelled"
+                      : "queue_completed",
+              },
+            });
+        });
       }
     }
     if (candidates.length < 100) return;

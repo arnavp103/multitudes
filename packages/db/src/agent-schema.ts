@@ -184,3 +184,27 @@ export const Submission = pgTable(
   }),
   (t) => [uniqueIndex("submission_owner_key_idx").on(t.ownerId, t.key)],
 );
+
+/** Append-only cross-domain facts. A run cannot be pruned while audit facts reference it. */
+export const Event = pgTable(
+  "event",
+  (t) => ({
+    id: t.uuid().primaryKey(),
+    name: t.text().notNull(),
+    version: t.smallint().notNull(),
+    occurredAt: t.timestamp({ withTimezone: true }).notNull(),
+    actorId: t.text(),
+    subjectType: t.text().notNull(),
+    subjectId: t.text().notNull(),
+    runId: t.uuid().references(() => AgentRun.id, { onDelete: "restrict" }),
+    traceId: t.text(),
+    payload: t.jsonb().$type<Record<string, unknown>>().notNull(),
+    idempotencyKey: t.text().unique(),
+  }),
+  (t) => [
+    index("event_name_time_idx").on(t.name, t.occurredAt),
+    index("event_subject_idx").on(t.subjectType, t.subjectId),
+    index("event_actor_time_idx").on(t.actorId, t.occurredAt),
+    index("event_run_idx").on(t.runId),
+  ],
+);

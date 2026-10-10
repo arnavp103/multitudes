@@ -1,0 +1,42 @@
+{
+  "name": "@multitudes/events",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    },
+    "./registry": {
+      "types": "./dist/registry.d.ts",
+      "default": "./src/registry.ts"
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint --flag unstable_native_nodejs_ts_config",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "test:unit": "node --import tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@multitudes/observability": "workspace:*",
+    "@opentelemetry/api": "^1.9.0",
+    "uuid": "14.0.3",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@multitudes/eslint-config": "workspace:*",
+    "@multitudes/prettier-config": "workspace:*",
+    "@multitudes/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "tsx": "^4.22.5",
+    "typescript": "catalog:"
+  },
+  "prettier": "@multitudes/prettier-config"
+}

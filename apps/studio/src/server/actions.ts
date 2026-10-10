@@ -57,37 +57,43 @@ export async function startRun(form: FormData) {
 
 /** Save an explicit expected outcome; production output is never treated as ground truth. */
 export async function saveCase(form: FormData) {
-  await requireStaff("author");
+  const session = await requireStaff("author");
   const lines = (name: string) =>
     field(form, name)
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
-  await authorCase({
-    name: form.get("name"),
-    dataset: form.get("dataset"),
-    input: form.get("input"),
-    sourceRunId: field(form, "sourceRunId").length
-      ? field(form, "sourceRunId")
-      : undefined,
-    judge: field(form, "judgeRubric").trim()
-      ? {
-          provider: field(form, "judgeProvider"),
-          modelId: field(form, "judgeModel"),
-          rubric: field(form, "judgeRubric"),
-          threshold: field(form, "judgeThreshold").trim()
-            ? Number(field(form, "judgeThreshold"))
-            : undefined,
-        }
-      : undefined,
-    toolFixtures: JSON.parse(
-      field(form, "toolFixtures").trim() || "{}",
-    ) as unknown,
-    assertions: [
-      ...lines("contains").map((value) => ({ kind: "contains", value })),
-      ...lines("notContains").map((value) => ({ kind: "not_contains", value })),
-    ],
-  });
+  await authorCase(
+    {
+      name: form.get("name"),
+      dataset: form.get("dataset"),
+      input: form.get("input"),
+      sourceRunId: field(form, "sourceRunId").length
+        ? field(form, "sourceRunId")
+        : undefined,
+      judge: field(form, "judgeRubric").trim()
+        ? {
+            provider: field(form, "judgeProvider"),
+            modelId: field(form, "judgeModel"),
+            rubric: field(form, "judgeRubric"),
+            threshold: field(form, "judgeThreshold").trim()
+              ? Number(field(form, "judgeThreshold"))
+              : undefined,
+          }
+        : undefined,
+      toolFixtures: JSON.parse(
+        field(form, "toolFixtures").trim() || "{}",
+      ) as unknown,
+      assertions: [
+        ...lines("contains").map((value) => ({ kind: "contains", value })),
+        ...lines("notContains").map((value) => ({
+          kind: "not_contains",
+          value,
+        })),
+      ],
+    },
+    session.user.id,
+  );
   logger.info("Studio eval case saved");
   redirect("/cases");
 }

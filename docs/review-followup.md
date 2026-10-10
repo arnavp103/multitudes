@@ -81,10 +81,17 @@ These are real gaps or design proposals, not claims of completion:
   this change tests the current mapped boundary and privacy contract.
 - Queue dead-letter policy; consistent explicit migration URLs; DB status/mode
   checks and source-run referential policy; Next shutdown flushing; async span links.
-- A queryable telemetry backend, typed business-event registry, rich safe error
+- A queryable telemetry backend, rich safe error
   taxonomy, read-only reports, and selective Result adoption remain the separate
   `observability-roadmap.md` proposal. No telemetry provider has been selected.
 - Studio access-denial UX/request caching, pinned CI actions and install/cache
   optimization, generator catalog use, shared validator cleanup, and dead-code tooling.
 - Keep deployment infrastructure under top-level `infra/<provider>`. Pulumi versus
   Alchemy and infrastructure workspaces can be decided when a target is selected.
+
+## Business-events follow-up
+
+The previously deferred business-event ledger is now implemented in
+`packages/events` and the `event` table. See `business-events.md` for the eight
+initial event names, atomic emissions, post-commit telemetry, and retention rules.
+The telemetry backend, Docker/deployment images, and error taxonomy remain separate.
