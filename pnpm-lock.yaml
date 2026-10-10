@@ -876,6 +876,9 @@ importers:
 
   tooling/dev:
     dependencies:
+      '@dotenvx/dotenvx':
+        specifier: ^2.34.2
+        version: 2.34.2
       '@multitudes/auth':
         specifier: workspace:*
         version: link:../../packages/auth
