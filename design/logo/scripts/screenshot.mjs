@@ -4,6 +4,7 @@
  *   node design/logo/scripts/screenshot.mjs <round> <outDir> [sheet|app|all]
  *
  * `sheet` captures the contact sheet (overview + one card per variant).
+ * `baseline:<name>` captures only the unmodified Studio, saved as <name>.
  * `app` signs in to the local Studio started by `pnpm dev:up` (via
  * `pnpm dev:login studio admin`), then captures the dashboard in light and
  * dark mode for every variant with only its accent tokens and logo swapped
@@ -130,14 +131,20 @@ const compose = async (browser, light, dark, path, title) => {
   await page.close();
 };
 
-const shootApp = async (browser) => {
+/**
+ * Capture the dashboard for every variant, or (with `baseline`) only the
+ * Studio as it currently renders, saved under that name.
+ */
+const shootApp = async (browser, baseline) => {
   const dir = ensure(join(outDir, `round-${round}`, "app"));
   const raw = ensure(join(outDir, `round-${round}`, "raw"));
   const state = await signIn(browser);
-  const targets = [
-    { id: "current", label: "Current theme (no overrides)" },
-    ...variants.map((v) => ({ id: v.id, label: `${v.id} ${v.name}`, v })),
-  ];
+  const targets = baseline
+    ? [{ id: baseline, label: `${baseline} (no overrides)` }]
+    : [
+        { id: "current", label: "Current theme (no overrides)" },
+        ...variants.map((v) => ({ id: v.id, label: `${v.id} ${v.name}`, v })),
+      ];
   for (const { id, label, v } of targets) {
     const [light, dark] = ["light", "dark"].map((m) =>
       join(raw, `${id}-${m}.png`),
@@ -153,6 +160,7 @@ const browser = await chromium.launch();
 try {
   if (what === "sheet" || what === "all") await shootSheet(browser);
   if (what === "app" || what === "all") await shootApp(browser);
+  if (what.startsWith("baseline:")) await shootApp(browser, what.slice(9));
 } finally {
   await browser.close();
 }
