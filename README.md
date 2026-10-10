@@ -4,8 +4,8 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 
 ## Requirements
 
-- Node.js `^22.21.0`
-- pnpm `^10.19.0`
+- Node.js `^24.0.0`
+- pnpm `^10.34.6`
 
 ## Getting started
 
@@ -15,13 +15,19 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
    pnpm install
    ```
 
-2. Create a local environment file and configure its values:
+2. Create the environment files from the commented template:
 
    ```sh
    cp .env.example .env
+   cp .env.example .env.staging
+   cp .env.example .env.production
    ```
 
-   Set `POSTGRES_URL` to your Postgres connection string, along with `AUTH_SECRET` and the Discord OAuth credentials. Generate an auth secret with `openssl rand -base64 32`.
+   Uncomment and set `POSTGRES_URL` to your Postgres connection string, along with `AUTH_SECRET` and the Discord OAuth credentials. Generate an auth secret with `openssl rand -base64 32`.
+
+   Run commands with a selected environment file using `pnpm exec dotenvx run -f .env.staging -- <command>` or `pnpm exec dotenvx run -f .env.production -- <command>`. Encrypt files before committing them with `pnpm exec dotenvx encrypt -f .env.staging -f .env.production`; keep `.env.keys*` private and provide the matching `DOTENV_PRIVATE_KEY_*` values to deployment environments.
+
+   The pre-commit hook blocks unencrypted dotenv files and scans staged changes with Gitleaks. Install Gitleaks locally with `go install github.com/zricethezav/gitleaks/v8@v8.30.1`.
 
 3. Generate the Better Auth database schema and push the Drizzle schema:
 
@@ -59,6 +65,7 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 | `pnpm db:push`              | Push the Drizzle schema to the configured database |
 | `pnpm db:studio`            | Open Drizzle Studio                                |
 | `pnpm exec multitudes help` | Show CLI help                                      |
+| `pnpm syncpack`             | Check dependency version consistency               |
 
 ## Commit messages
 

@@ -1,0 +1,12 @@
+pnpm exec dotenvx precommit
+
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --pre-commit --redact --staged
+elif command -v go >/dev/null 2>&1 && [ -x "$(go env GOPATH)/bin/gitleaks" ]; then
+  "$(go env GOPATH)/bin/gitleaks" git --pre-commit --redact --staged
+else
+  echo "Gitleaks is required; install it with go install github.com/zricethezav/gitleaks/v8@v8.30.1" >&2
+  exit 1
+fi
+
+pnpm syncpack

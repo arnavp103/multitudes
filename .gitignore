@@ -30,9 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local env files
-.env
+# local env overrides and dotenvx private keys
 .env*.local
+.env.keys*
 
 # vercel
 .vercel
