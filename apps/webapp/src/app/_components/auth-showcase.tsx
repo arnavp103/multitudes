@@ -8,31 +8,7 @@ import { auth, getSession } from "~/auth/server";
 export async function AuthShowcase() {
   const session = await getSession();
 
-  if (!session) {
-    return (
-      <form>
-        <Button
-          size="sm"
-          variant="outline"
-          formAction={async () => {
-            "use server";
-            const res = await auth.api.signInSocial({
-              body: {
-                provider: "discord",
-                callbackURL: "/",
-              },
-            });
-            if (!res.url) {
-              throw new Error("No URL returned from signInSocial");
-            }
-            redirect(res.url);
-          }}
-        >
-          Sign in with Discord
-        </Button>
-      </form>
-    );
-  }
+  if (!session) return null;
 
   return (
     <div className="flex items-center gap-3">

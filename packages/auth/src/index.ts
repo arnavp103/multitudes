@@ -14,8 +14,6 @@ export interface AuthOptions {
   productionUrl: string;
   secret: string | undefined;
   cookiePrefix: string;
-  discordClientId: string;
-  discordClientSecret: string;
   database?: typeof db;
 }
 /** Preserve concrete plugin inference for admin APIs and separate test-only helpers. */
@@ -50,13 +48,6 @@ export function initAuth<const P extends BetterAuthPlugin[] = []>(
         : []),
       ...(options.extraPlugins ?? ([] as unknown as P)),
     ],
-    socialProviders: {
-      discord: {
-        clientId: options.discordClientId,
-        clientSecret: options.discordClientSecret,
-        redirectURI: `${options.productionUrl}/api/auth/callback/discord`,
-      },
-    },
     onAPIError: {
       onError(error) {
         logger.error({ err: error }, "Auth API failed");

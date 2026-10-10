@@ -15,8 +15,6 @@ export const auth = initAuth({
   productionUrl: env.AUTH_PRODUCTION_URL ?? baseUrl,
   cookiePrefix: "multitudes-webapp",
   secret: env.AUTH_SECRET,
-  discordClientId: env.AUTH_DISCORD_ID,
-  discordClientSecret: env.AUTH_DISCORD_SECRET,
   extraPlugins: [nextCookies()],
 });
 export const getSession = cache(async () => {

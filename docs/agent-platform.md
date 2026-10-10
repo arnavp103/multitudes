@@ -14,7 +14,7 @@ webapp, Studio, and worker for the current checkout. Sign in with
 fixture/live model modes, concurrent worktrees, and authenticated browser tests.
 
 For manually managed environments, set `POSTGRES_URL`, app URLs, a 32+ character
-`AUTH_SECRET`, Discord credentials, `GEMINI_API_KEY`, and `AGENT_CODE_VERSION`.
+`AUTH_SECRET`, `GEMINI_API_KEY`, and `AGENT_CODE_VERSION`.
 Run `pnpm db:migrate` before deployment. It applies both the core/auth baseline
 and additive agent migrations, using separate journals. Existing schema-pushed
 installations must be checked against the baseline before adoption. pg-boss still

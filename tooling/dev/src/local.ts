@@ -54,8 +54,6 @@ const env: NodeJS.ProcessEnv = {
   AUTH_PRODUCTION_URL: `http://localhost:${profile.webPort}`,
   STUDIO_AUTH_PRODUCTION_URL: `http://localhost:${profile.studioPort}`,
   AUTH_SECRET: profile.secret,
-  AUTH_DISCORD_ID: process.env.AUTH_DISCORD_ID ?? "local-fixture",
-  AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET ?? "local-fixture",
   AGENT_CODE_VERSION: "local",
   PORT: String(profile.workerPort),
   OTEL_SDK_DISABLED: process.env.OTEL_EXPORTER_OTLP_ENDPOINT ? "false" : "true",
@@ -107,8 +105,6 @@ if (command === "down") {
         productionUrl: baseUrl,
         cookiePrefix: `multitudes-${app}`,
         secret: profile.secret,
-        discordClientId: "fixture",
-        discordClientSecret: "fixture",
       };
       const { createTestAuth } = await import("@multitudes/auth/testing");
       const { test } = await createTestAuth(options).$context;

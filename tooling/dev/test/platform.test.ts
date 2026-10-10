@@ -21,8 +21,6 @@ async function identity(
     productionUrl: baseUrl,
     cookiePrefix: `multitudes-${app}`,
     secret: process.env.AUTH_SECRET,
-    discordClientId: "fixture",
-    discordClientSecret: "fixture",
   });
   const { test: helpers } = await auth.$context;
   const account = await helpers.saveUser(

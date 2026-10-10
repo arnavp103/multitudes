@@ -18,7 +18,7 @@ API calls. Set `GEMINI_API_KEY` in the invoking shell to opt into live, billable
 Gemini calls. Auth and database secrets still remain local. The fixture is loaded
 by the dev/test runner, never by production worker configuration.
 
-## Local sign-in without Discord
+## Local sign-in links
 
 In another terminal, run `pnpm dev:login studio admin` or
 `pnpm dev:login webapp user`. Other seeded roles are `viewer` and `evaluator`.
@@ -54,11 +54,11 @@ mock `getSession`. New test identities must be unique per test.
 ## Auth deployment and migrations
 
 Set `WEBAPP_URL` and `STUDIO_URL` to the externally visible URLs. Each is its own
-trusted origin. OAuth callbacks use that app's URL by default. Set
-`AUTH_PRODUCTION_URL` / `STUDIO_AUTH_PRODUCTION_URL` only when deliberately using
-the OAuth proxy for preview environments. Register the callback URLs with Discord.
-Use one shared strong `AUTH_SECRET` of at least 32 characters. Cookies are scoped
-per app; no cross-subdomain SSO is enabled. Sessions last seven days, refresh daily,
+trusted origin. No social sign-in providers are configured; any future OAuth
+callbacks use that app's URL by default. Set `AUTH_PRODUCTION_URL` /
+`STUDIO_AUTH_PRODUCTION_URL` only when deliberately using the OAuth proxy for
+preview environments. Use one shared strong `AUTH_SECRET` of at least 32
+characters. Cookies are scoped per app; no cross-subdomain SSO is enabled. Sessions last seven days, refresh daily,
 and remain authoritative database reads without cookie caching. Auth HTTP rate
 limits use the shared PostgreSQL rate_limit table. Application submission quotas
 and spending controls are separate work, not implemented by this change.

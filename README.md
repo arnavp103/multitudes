@@ -29,7 +29,7 @@ The steps below configure an existing database and OAuth provider instead.
    cp .env.example .env.production
    ```
 
-   Uncomment and set `POSTGRES_URL` to your Postgres connection string, along with `AUTH_SECRET` and the Discord OAuth credentials. Generate an auth secret with `openssl rand -base64 32`.
+   Uncomment and set `POSTGRES_URL` to your Postgres connection string, along with `AUTH_SECRET`. Generate an auth secret with `openssl rand -base64 32`.
 
    Run commands with a selected environment file using `pnpm exec dotenvx run -f .env.staging -- <command>` or `pnpm exec dotenvx run -f .env.production -- <command>`. Encrypt files before committing them with `pnpm exec dotenvx encrypt -f .env.staging -f .env.production`; keep `.env.keys*` private and provide the matching `DOTENV_PRIVATE_KEY_*` values to deployment environments.
 

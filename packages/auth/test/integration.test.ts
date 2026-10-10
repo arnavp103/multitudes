@@ -19,8 +19,6 @@ await test("real sessions enforce roles, expiry, revocation, bans, and cookie is
       productionUrl: "http://localhost:4301",
       cookiePrefix: "multitudes-studio",
       secret: "integration-only-secret-at-least-32-characters",
-      discordClientId: "fixture",
-      discordClientSecret: "fixture",
     };
     const auth = createTestAuth(options);
     const { test: helpers } = await auth.$context;
