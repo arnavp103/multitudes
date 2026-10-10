@@ -184,6 +184,12 @@ await test("atomic enqueue, attempt fencing and checkpoint persistence", async (
     await reconcileRuns();
     assert.equal((await getRun(missing))?.status, "failed");
     assert.match((await getRun(missing))?.error ?? "", /missing/);
+    await reconcileRuns();
+    const missingEvents = await pool.query<{ reason: string }>(
+      "select payload->>'reason' as reason from event where run_id = $1 and name = 'task.failed'",
+      [missing],
+    );
+    assert.deepEqual(missingEvents.rows, [{ reason: "queue_missing" }]);
     const firstLive = live[0];
     assert.ok(firstLive);
     assert.equal((await getRun(firstLive))?.status, "queued");

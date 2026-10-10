@@ -132,6 +132,14 @@ and events. `OTEL_CAPTURE_MODEL_CONTENT=true` explicitly opts into sensitive mod
 content export for a controlled environment; exception bodies remain stripped.
 See `review-followup.md` for the precise fixes and remaining review findings.
 
+## Business events
+
+`event` is the unsampled append-only business ledger alongside the run/cost tables.
+`packages/events/src/registry.ts` owns names, versions, descriptions, and strict
+Zod payloads. Service transactions insert business facts with their state changes;
+Pino/span notifications are best-effort after commit. See `business-events.md`
+for lifecycle coverage, SQL funnel queries, idempotency, and the required migration.
+
 ## Validation
 
 `pnpm test:unit` runs model-free runtime, judge parsing, metering, email, UI, CLI,

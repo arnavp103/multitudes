@@ -23,6 +23,7 @@ packages, and workspace tooling.
 │   ├── email/
 │   ├── agent/
 │   ├── evals/
+│   ├── events/
 │   ├── observability/
 │   ├── api/
 │   ├── auth/
@@ -54,8 +55,15 @@ the current folder up through the repository root before making changes.
   creates a short-lived loopback sign-in link. These commands are development-only.
 - Unit tests, integration tests, and Playwright journeys have separate commands.
   Browser tests run actual apps/worker with explicit process-local Google fixtures.
-- The observability proposal in `docs/observability-roadmap.md` is a design review,
-  not an implemented events/error/report API. Do not invent those contracts.
+- Business event names/versions and strict payloads live in
+  `packages/events/src/registry.ts`. Read `docs/business-events.md` before adding
+  events. Use `packages/db/src/events.ts` inside the state-changing transaction;
+  telemetry is published only after commit. Never emit business facts from UI code.
+- `event` is append-only analytics/audit history, not event sourcing. `agent_run`,
+  `run_event`, and `model_call` remain the execution/state/cost ledgers. Event run
+  foreign keys restrict deletion; do not cascade-delete or rewrite audit facts.
+- Errors, reports, and the telemetry backend in `docs/observability-roadmap.md`
+  remain proposals. Do not invent contracts that have not been implemented.
 
 - Skills are vendored as ordinary files in `.agents/skills`; keep the MIT license
   and companion documents. Never recreate a skills submodule.

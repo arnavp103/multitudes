@@ -66,13 +66,13 @@ export function gradeOutput(output: string, assertions: EvalAssertion[]) {
 }
 
 /** Save a new immutable case; edits are new case IDs, preserving old experiments. */
-export async function authorCase(input: unknown) {
+export async function authorCase(input: unknown, actorId: string) {
   const value = caseSchema.parse(input);
   if (value.sourceRunId && !(await getRun(value.sourceRunId)))
     throw new Error("Source run does not exist");
-  const result = await createCase(value);
+  const result = await createCase(value, z.string().min(1).parse(actorId));
   logger.info(
-    { case_id: result?.id, assertion_count: value.assertions.length },
+    { case_id: result.id, assertion_count: value.assertions.length },
     "Eval case authored",
   );
   return result;

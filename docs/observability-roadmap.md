@@ -1,12 +1,13 @@
 # Review of the proposed observability follow-up
 
-Status: design review only. This PR implements auth/admin and priorities 1, 2,
-and 7. It does not provision a telemetry vendor, business-event ledger, error
-package, Result framework, MCP connection, or read-only production role.
+Status: the business-event ledger is now implemented; see `business-events.md`
+for its registry, transaction boundary, retention semantics, and tests. The rest
+of this document remains a design review. No telemetry vendor, error package,
+Result framework, MCP connection, or read-only production role is provisioned.
 
 The proposed three-store model fits the platform: sampled telemetry explains
 execution, the transactional agent ledger owns run outcomes/costs, and typed
-business events would support analytics across runs, users, and experiments.
+business events support analytics across runs, users, and experiments.
 The collector currently exports only debug output; selecting/configuring the
 queryable backend remains the first observability step. A Sentry connection in
 another conversation is not evidence that this project has a configured Sentry
