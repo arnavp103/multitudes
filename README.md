@@ -33,6 +33,7 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 
    ```sh
    pnpm auth:generate
+   pnpm db:migrate
    pnpm db:push
    ```
 
@@ -45,6 +46,13 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 ## Workspace layout
 
 - `apps/webapp` — Next.js app with tRPC, Better Auth, and the shared UI
+- `apps/studio` — internal playground, eval authoring, trajectories and reliability/cost dashboard
+- `apps/backend` — durable Strands worker
+- `packages/ai` — metered Gemini AI Studio and DeepSeek providers
+- `packages/agent` — SDK, API tools and editable system prompt
+- `packages/evals` — assertions and LLM judges
+- `packages/observability` — Pino and OpenTelemetry for every server app
+- `packages/email` — React Email templates and provider-neutral delivery interface
 - `packages/api` — tRPC routers and context
 - `packages/auth` — Better Auth configuration
 - `packages/db` — Drizzle schema, client, and database scripts
@@ -60,6 +68,9 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 | `pnpm dev:webapp`           | Run the web app and its workspace dependencies     |
 | `pnpm build`                | Build all workspaces                               |
 | `pnpm lint`                 | Lint all workspaces                                |
+| `pnpm test:unit`            | Run unit and UI tests                              |
+| `pnpm test:integration`     | Run HTTP adapter and isolated PostgreSQL tests     |
+| `pnpm dev:email`            | Preview React Email templates on port 3002         |
 | `pnpm typecheck`            | Type-check all workspaces                          |
 | `pnpm format:fix`           | Format all workspaces                              |
 | `pnpm db:push`              | Push the Drizzle schema to the configured database |

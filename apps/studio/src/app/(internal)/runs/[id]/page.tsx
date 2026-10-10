@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { z } from "zod/v4";
 
 import { getRun, getRunEvents } from "@multitudes/db/runs";
+import { RunConversation } from "@multitudes/ui/agent-chat";
+import { buttonVariants } from "@multitudes/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@multitudes/ui/tabs";
 
 import { LiveRefresh } from "~/components/live-refresh";
 import { requireStaff } from "~/server/access";
@@ -29,7 +32,10 @@ export default async function RunPage({
           <LiveRefresh
             active={run.status === "queued" || run.status === "running"}
           />
-          <Link className="button" href={`/cases/new?sourceRunId=${id}`}>
+          <Link
+            className={buttonVariants()}
+            href={`/cases/new?sourceRunId=${id}`}
+          >
             Create eval case
           </Link>
         </div>
@@ -40,21 +46,26 @@ export default async function RunPage({
         <span>{run.attempts} attempt(s)</span>
         <span>Revision {run.configuration.codeVersion}</span>
       </div>
-      <section className="panel">
-        <h2>Input</h2>
-        <pre>{run.input}</pre>
-        {run.output !== null && (
-          <>
-            <h2>Output</h2>
-            <pre>{run.output}</pre>
-          </>
-        )}
-        {run.error && <p className="error">{run.error}</p>}
-        <details>
-          <summary>Frozen configuration</summary>
+      <Tabs defaultValue="conversation">
+        <TabsList className="mb-5">
+          <TabsTrigger value="conversation">Conversation</TabsTrigger>
+          <TabsTrigger value="configuration">Configuration</TabsTrigger>
+        </TabsList>
+        <TabsContent value="conversation" className="panel">
+          <RunConversation
+            run={{
+              id: run.id,
+              input: run.input,
+              status: run.status,
+              output: run.output,
+              error: run.error,
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="configuration" className="panel">
           <pre>{JSON.stringify(run.configuration, null, 2)}</pre>
-        </details>
-      </section>
+        </TabsContent>
+      </Tabs>
       <section className="panel">
         <h2>
           Event timeline <span className="muted">{events.length}</span>

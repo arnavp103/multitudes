@@ -82,7 +82,13 @@ await test("a fresh agent restores the saved conversation without another model 
   assert.equal(model.calls, 1);
   assert.ok(events.includes("message"));
   assert.ok(events.includes("model.finished"));
-  assert.equal(restored.toolRegistry.list().length, 0);
+  assert.deepEqual(
+    restored.toolRegistry
+      .list()
+      .map((tool) => tool.name)
+      .sort(),
+    ["get_agent_capabilities", "get_task_status"],
+  );
   await restored.shutdown();
 });
 

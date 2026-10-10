@@ -3,6 +3,15 @@ import { notFound } from "next/navigation";
 import { z } from "zod/v4";
 
 import { getExperimentRuns, listExperiments } from "@multitudes/db/runs";
+import { Button } from "@multitudes/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@multitudes/ui/table";
 
 import { LiveRefresh } from "~/components/live-refresh";
 import { requireStaff } from "~/server/access";
@@ -65,57 +74,63 @@ export default async function ExperimentPage({
               ))}
           </select>
         </label>
-        <button className="secondary">Compare</button>
+        <Button variant="outline">Compare</Button>
       </form>
       <section className="panel">
-        <table>
-          <thead>
-            <tr>
-              <th>Case / trial</th>
-              <th>Execution</th>
-              <th>Score</th>
-              <th>Baseline passes</th>
-              <th>Output</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Case / trial</TableHead>
+              <TableHead>Execution</TableHead>
+              <TableHead>Score</TableHead>
+              <TableHead>Baseline passes</TableHead>
+              <TableHead>Output</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {runs.map(({ run, score }) => {
               const matches = baseline.filter(
                 (item) => item.run.caseId === run.caseId,
               );
               return (
-                <tr key={run.id}>
-                  <td>
+                <TableRow key={run.id}>
+                  <TableCell>
                     <Link href={`/runs/${run.id}`}>
                       {run.input.slice(0, 70)}
                     </Link>
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     <span className={`status ${run.status}`}>{run.status}</span>
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     {score ? (
                       <details>
                         <summary>{score.passed ? "Pass" : "Fail"}</summary>
-                        <pre>{JSON.stringify(score.details, null, 2)}</pre>
+                        <pre>
+                          {JSON.stringify(
+                            { assertions: score.details, judge: score.judge },
+                            null,
+                            2,
+                          )}
+                        </pre>
                       </details>
                     ) : (
                       "—"
                     )}
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     {matches.length
                       ? `${matches.filter((item) => item.score?.passed).length}/${matches.length}`
                       : "—"}
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     <pre>{run.output ?? run.error ?? "Waiting for worker"}</pre>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               );
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </section>
     </>
   );

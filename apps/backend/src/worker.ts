@@ -1,7 +1,12 @@
 import { metrics } from "@opentelemetry/api";
 import { configureLogging } from "@strands-agents/sdk";
 
-import { createAgent } from "@multitudes/agent";
+import {
+  AGENT_LIMITS,
+  AGENT_TIMEOUT_MS,
+  createAgent,
+  JUDGE_TIMEOUT_MS,
+} from "@multitudes/agent";
 import { pool } from "@multitudes/db/client";
 import { getQueue, RETRY_LIMIT, RUN_QUEUE } from "@multitudes/db/queue";
 import {
@@ -14,7 +19,7 @@ import {
   reconcileRuns,
   sessionStore,
 } from "@multitudes/db/runs";
-import { gradeOutput } from "@multitudes/evals";
+import { gradeOutput, judgeOutput } from "@multitudes/evals";
 import { withSpan } from "@multitudes/observability/context";
 import { createLogger } from "@multitudes/observability/logger";
 
@@ -68,6 +73,8 @@ export async function startWorker() {
             } else {
               const agent = createAgent({
                 runId: run.id,
+                attempt,
+                ownerId: run.ownerId ?? undefined,
                 configuration: run.configuration,
                 storage,
                 record,
@@ -80,9 +87,9 @@ export async function startWorker() {
                     cancelSignal: AbortSignal.any([
                       job.signal,
                       shutdown.signal,
-                      AbortSignal.timeout(240_000),
+                      AbortSignal.timeout(AGENT_TIMEOUT_MS),
                     ]),
-                    limits: { turns: 10, totalTokens: 50_000 },
+                    limits: AGENT_LIMITS,
                   },
                 );
                 if (
@@ -111,12 +118,58 @@ export async function startWorker() {
             }
             const test = run.caseId ? await getCase(run.caseId) : undefined;
             if (run.caseId && !test) throw new Error("Eval case missing");
-            await finishRun(
-              run.id,
-              attempt,
-              output,
-              test ? gradeOutput(output, test.assertions) : undefined,
-            );
+            let score;
+            if (test) {
+              const assertions = test.assertions.length
+                ? gradeOutput(output, test.assertions)
+                : {
+                    passed: true,
+                    details: [],
+                    evaluatorVersion: "text-assertions/v1",
+                  };
+              let judge;
+              if (test.judge) {
+                const saved = await storage.read("judge.json");
+                if (saved) {
+                  const { parseVerdict } = await import("@multitudes/evals");
+                  const raw = JSON.parse(new TextDecoder().decode(saved)) as {
+                    score: number;
+                    reason: string;
+                  };
+                  judge = parseVerdict(
+                    JSON.stringify({ score: raw.score, reason: raw.reason }),
+                    test.judge,
+                  );
+                } else {
+                  judge = await judgeOutput({
+                    runId: run.id,
+                    attempt,
+                    input: run.input,
+                    output,
+                    config: test.judge,
+                    signal: AbortSignal.any([
+                      job.signal,
+                      shutdown.signal,
+                      AbortSignal.timeout(JUDGE_TIMEOUT_MS),
+                    ]),
+                  });
+                  await storage.write(
+                    "judge.json",
+                    new TextEncoder().encode(JSON.stringify(judge)),
+                  );
+                  await record("judge.result", judge);
+                }
+              }
+              score = {
+                ...assertions,
+                passed: assertions.passed && (judge?.passed ?? true),
+                evaluatorVersion: judge
+                  ? "text-and-judge/v1"
+                  : assertions.evaluatorVersion,
+                judge,
+              };
+            }
+            await finishRun(run.id, attempt, output, score);
             completed.add(1, { mode: run.mode });
             log.info("Run completed");
           } catch (error) {
@@ -159,6 +212,7 @@ export async function startWorker() {
   logger.info("Agent worker ready");
   return async () => {
     clearInterval(reconciliation);
+    logger.info("Worker stopping");
     shutdown.abort();
     await queue.stop({ graceful: true, timeout: 30_000 });
     await pool.end();

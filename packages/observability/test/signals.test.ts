@@ -23,6 +23,7 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
     exportIntervalMillis: 60_000,
   });
   const spanNames: string[] = [];
+  let exportedUrl: unknown;
   const sdk = startTelemetry("signals-test", {
     sampler: {
       shouldSample: () => ({ decision: 2 }),
@@ -31,6 +32,10 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
     traceExporter: {
       export(spans, done) {
         spanNames.push(...spans.map((span) => span.name));
+        for (const span of spans) {
+          if (span.name === "GET /tasks")
+            exportedUrl = span.attributes["http.url"];
+        }
         done({ code: 0 });
       },
       shutdown() {
@@ -53,7 +58,13 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
         () => {
           assert.equal(trace.getActiveSpan()?.spanContext().traceId, traceId);
           logger.info(
-            { apiKey: "private-test-value", run_id: "test-run" },
+            {
+              apiKey: "private-test-value",
+              run_id: "test-run",
+              input: "private-prompt",
+              config: { systemPrompt: "private-system" },
+              err: new Error("private-error-body"),
+            },
             "attempt completed",
           );
           metrics.getMeter("test").createCounter("test.runs").add(1);
@@ -67,8 +78,39 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
     assert.equal(records.length, 1);
     assert.equal(records[0]?.spanContext.traceId, traceId);
     assert.equal(records[0].attributes.apiKey, "[REDACTED]");
-    assert.ok(!JSON.stringify(records).includes("private-test-value"));
+    for (const secret of [
+      "private-test-value",
+      "private-prompt",
+      "private-system",
+      "private-error-body",
+    ]) {
+      assert.ok(!JSON.stringify(records).includes(secret));
+    }
+    const request = trace.getTracer("next-test").startSpan("GET /tasks", {
+      attributes: {
+        "next.span_type": "BaseServer.handleRequest",
+        "next.route": "/tasks",
+        "http.method": "GET",
+        "http.status_code": 200,
+        "http.url": "https://example.com/tasks?token=private",
+      },
+    });
+    request.end();
+    await logProcessor.forceFlush();
+    const access = logExporter
+      .getFinishedLogRecords()
+      .find((record) => record.body === "HTTP request completed");
+    assert.ok(access);
+    assert.equal(access.attributes.route, "/tasks");
+    assert.equal(access.attributes.trace_id, request.spanContext().traceId);
     const collected = await reader.collect();
+    assert.ok(
+      collected.resourceMetrics.scopeMetrics.some((scope) =>
+        scope.metrics.some(
+          (metric) => metric.descriptor.name === "http.server.requests",
+        ),
+      ),
+    );
     assert.ok(
       collected.resourceMetrics.scopeMetrics.some((scope) =>
         scope.metrics.some((metric) => metric.descriptor.name === "test.runs"),
@@ -77,5 +119,6 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
   } finally {
     await sdk.shutdown();
   }
-  assert.deepEqual(spanNames.sort(), ["enqueue", "worker"]);
+  assert.deepEqual(spanNames.sort(), ["GET /tasks", "enqueue", "worker"]);
+  assert.equal(exportedUrl, "https://example.com/tasks");
 });

@@ -12,6 +12,7 @@ import { createTRPCContext } from "@trpc/tanstack-react-query";
 import SuperJSON from "superjson";
 
 import type { AppRouter } from "@multitudes/api";
+import { browserLogger } from "@multitudes/observability/browser";
 
 import { env } from "~/env";
 import { createQueryClient } from "./query-client";
@@ -36,6 +37,18 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
     createTRPCClient<AppRouter>({
       links: [
         loggerLink({
+          logger: (event) => {
+            const failed =
+              event.direction === "down" && event.result instanceof Error;
+            browserLogger[failed ? "error" : "info"](
+              {
+                procedure: event.path,
+                direction: event.direction,
+                type: event.type,
+              },
+              failed ? "RPC failed" : "RPC activity",
+            );
+          },
           enabled: (op) =>
             env.NODE_ENV === "development" ||
             (op.direction === "down" && op.result instanceof Error),

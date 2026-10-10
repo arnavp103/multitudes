@@ -5,22 +5,39 @@ import type { AgentConfiguration, EvalAssertion } from "@multitudes/db/schema";
 import { configurationSchema, inputSchema } from "@multitudes/agent";
 import { createCase, enqueueRuns, getCase, getRun } from "@multitudes/db/runs";
 import { captureTraceContext } from "@multitudes/observability/context";
+import { createLogger } from "@multitudes/observability/logger";
 
-export const caseSchema = z.object({
-  name: z.string().min(1).max(200),
-  dataset: z.string().min(1).max(100),
-  input: inputSchema,
-  assertions: z
-    .array(
-      z.object({
-        kind: z.enum(["contains", "not_contains"]),
-        value: z.string().min(1).max(4_000),
-      }),
-    )
-    .min(1)
-    .max(50),
-  sourceRunId: z.uuid().optional(),
+import { JUDGE_PROMPT_VERSION } from "./prompts/judge";
+
+const logger = createLogger("multitudes-evals");
+
+export const judgeSchema = z.object({
+  provider: z.enum(["gemini", "deepseek"]),
+  modelId: z.string().min(1).max(256),
+  rubric: z.string().min(1).max(8000),
+  threshold: z.number().min(0).max(1).default(0.8),
+  promptVersion: z.literal(JUDGE_PROMPT_VERSION).default(JUDGE_PROMPT_VERSION),
 });
+
+export const caseSchema = z
+  .object({
+    name: z.string().min(1).max(200),
+    dataset: z.string().min(1).max(100),
+    input: inputSchema,
+    assertions: z
+      .array(
+        z.object({
+          kind: z.enum(["contains", "not_contains"]),
+          value: z.string().min(1).max(4_000),
+        }),
+      )
+      .max(50),
+    sourceRunId: z.uuid().optional(),
+    judge: judgeSchema.optional(),
+  })
+  .refine((value) => value.assertions.length > 0 || !!value.judge, {
+    message: "Add an assertion or a judge rubric",
+  });
 
 /** Versioned deterministic grader; matching is intentionally case-sensitive. */
 export function gradeOutput(output: string, assertions: EvalAssertion[]) {
@@ -45,7 +62,12 @@ export async function authorCase(input: unknown) {
   const value = caseSchema.parse(input);
   if (value.sourceRunId && !(await getRun(value.sourceRunId)))
     throw new Error("Source run does not exist");
-  return createCase(value);
+  const result = await createCase(value);
+  logger.info(
+    { case_id: result?.id, assertion_count: value.assertions.length },
+    "Eval case authored",
+  );
+  return result;
 }
 
 /** Freeze a configuration and enqueue every trial atomically with its experiment. */
@@ -82,5 +104,11 @@ export async function launchExperiment(input: {
       : [],
   );
   await enqueueRuns(runs, { id, name, configuration });
+  logger.info(
+    { experiment_id: id, trial_count: runs.length },
+    "Experiment launched",
+  );
   return id;
 }
+
+export { judgeOutput, parseVerdict } from "./judge";

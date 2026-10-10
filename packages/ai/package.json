@@ -1,0 +1,43 @@
+{
+  "name": "@multitudes/ai",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint --flag unstable_native_nodejs_ts_config",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "test:unit": "node --import tsx --test test/metering.test.ts",
+    "test:integration": "node --import tsx --test test/integration.test.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/deepseek": "^2.0.71",
+    "@ai-sdk/provider": "^3.0.0",
+    "@google/genai": "^2.6.0",
+    "@multitudes/db": "workspace:*",
+    "@multitudes/observability": "workspace:*",
+    "@opentelemetry/api": "^1.9.0",
+    "@strands-agents/sdk": "1.20.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@multitudes/eslint-config": "workspace:*",
+    "@multitudes/prettier-config": "workspace:*",
+    "@multitudes/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "tsx": "^4.22.5",
+    "typescript": "catalog:"
+  },
+  "prettier": "@multitudes/prettier-config"
+}

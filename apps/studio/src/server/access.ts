@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { nextCookies } from "better-auth/next-js";
 
 import { initAuth } from "@multitudes/auth";
+import { createLogger } from "@multitudes/observability/logger";
 
 import { readStudioEnv } from "~/env";
 
@@ -37,9 +38,11 @@ export async function requireStaff() {
   if (
     !session.user.emailVerified ||
     !allowed.includes(session.user.email.toLowerCase())
-  )
+  ) {
+    createLogger("multitudes-studio").warn("Studio access denied");
     throw new Error(
       "This account does not have studio access. Ask an administrator to add its verified email to STUDIO_ALLOWED_EMAILS.",
     );
+  }
   return session;
 }

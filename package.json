@@ -29,7 +29,10 @@
     "dev:backend": "turbo watch dev -F @multitudes/backend...",
     "db:generate": "pnpm -F @multitudes/db generate",
     "db:migrate": "pnpm -F @multitudes/db migrate",
-    "test": "turbo run test"
+    "test": "pnpm test:unit",
+    "test:unit": "turbo run test:unit",
+    "test:integration": "turbo run test:integration",
+    "dev:email": "pnpm --filter @multitudes/email dev"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",

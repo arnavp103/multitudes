@@ -4,7 +4,10 @@ import { logs } from "@opentelemetry/api-logs";
 import pino from "pino";
 
 /** Create JSON logs and export the same redacted records through the OTel provider. */
-export function createLogger(service: string, level = "info") {
+export function createLogger(
+  service: string,
+  level = process.env.LOG_LEVEL ?? "info",
+) {
   const otel = logs.getLogger(service);
   const sink = new Writable({
     write(chunk: Buffer, _encoding, callback) {
@@ -46,12 +49,29 @@ export function createLogger(service: string, level = "info") {
     {
       level,
       base: { service },
+      serializers: { err: safeError },
       redact: {
         paths: [
           "authorization",
           "cookie",
           "password",
           "apiKey",
+          "token",
+          "secret",
+          "input",
+          "output",
+          "systemPrompt",
+          "messages",
+          "*.authorization",
+          "*.cookie",
+          "*.password",
+          "*.apiKey",
+          "*.token",
+          "*.secret",
+          "*.input",
+          "*.output",
+          "*.systemPrompt",
+          "*.messages",
           "req.headers.authorization",
           "req.headers.cookie",
         ],
@@ -64,6 +84,24 @@ export function createLogger(service: string, level = "info") {
           : {};
       },
     },
-    pino.multistream([{ stream: process.stdout }, { stream: sink }]),
+    pino.multistream([
+      { stream: process.stdout, level: "trace" },
+      { stream: sink, level: "trace" },
+    ]),
   );
+}
+
+/** Error messages/causes can contain SQL parameters, provider bodies, or secrets. */
+export function safeError(error: unknown) {
+  if (!(error instanceof Error)) return { type: "UnknownError" };
+  const code =
+    "code" in error && typeof error.code === "string" ? error.code : undefined;
+  return {
+    type: error.name,
+    code,
+    frames: error.stack
+      ?.split("\n")
+      .filter((line) => /^\s+at /.test(line))
+      .join("\n"),
+  };
 }

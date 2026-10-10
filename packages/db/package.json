@@ -22,6 +22,14 @@
     "./queue": {
       "types": "./dist/queue.d.ts",
       "default": "./src/queue.ts"
+    },
+    "./usage": {
+      "types": "./dist/usage.d.ts",
+      "default": "./src/usage.ts"
+    },
+    "./dashboard": {
+      "types": "./dist/dashboard.d.ts",
+      "default": "./src/dashboard.ts"
     }
   },
   "license": "MIT",
@@ -37,7 +45,7 @@
     "with-env": "dotenvx run -f ../../.env --",
     "generate": "drizzle-kit generate --config drizzle.agents.config.ts",
     "migrate": "pnpm with-env drizzle-kit migrate --config drizzle.agents.config.ts",
-    "test": "node --import tsx --test test/*.test.ts"
+    "test:integration": "node --import tsx --test test/integration.test.ts"
   },
   "dependencies": {
     "@multitudes/observability": "workspace:*",

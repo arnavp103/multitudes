@@ -4,6 +4,9 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { oAuthProxy } from "better-auth/plugins";
 
 import { db } from "@multitudes/db/client";
+import { createLogger } from "@multitudes/observability/logger";
+
+const logger = createLogger("multitudes-auth");
 
 export function initAuth(options: {
   baseUrl: string;
@@ -34,8 +37,8 @@ export function initAuth(options: {
       },
     },
     onAPIError: {
-      onError(error, ctx) {
-        console.error("BETTER AUTH API ERROR", error, ctx);
+      onError(error) {
+        logger.error({ err: error }, "Auth API failed");
       },
     },
   };

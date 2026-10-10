@@ -41,7 +41,12 @@
       "cache": false,
       "interactive": true
     },
-    "test": {
+    "test:unit": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "cache": false
+    },
+    "test:integration": {
       "dependsOn": ["^build"],
       "outputs": [],
       "cache": false
@@ -72,6 +77,10 @@
     "AWS_*",
     "OPENAI_API_KEY",
     "TEST_POSTGRES_URL",
-    "NEXT_RUNTIME"
+    "NEXT_RUNTIME",
+    "GEMINI_API_KEY",
+    "DEEPSEEK_API_KEY",
+    "NEXT_OTEL_VERBOSE",
+    "NEXT_OTEL_FETCH_DISABLED"
   ]
 }

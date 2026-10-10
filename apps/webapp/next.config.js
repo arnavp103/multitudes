@@ -10,6 +10,7 @@ const config = {
   /** Enables hot reloading for local packages without a build step */
   transpilePackages: [
     "@multitudes/api",
+    "@multitudes/agent",
     "@multitudes/observability",
     "@multitudes/auth",
     "@multitudes/db",
@@ -17,7 +18,7 @@ const config = {
     "@multitudes/validators",
   ],
 
-  serverExternalPackages: ["pg", "pino"],
+  serverExternalPackages: ["pg", "pg-boss", "pino", "@strands-agents/sdk"],
 
   /** We already do linting and typechecking as separate tasks in CI */
   typescript: { ignoreBuildErrors: true },

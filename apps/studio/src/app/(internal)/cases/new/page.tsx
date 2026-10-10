@@ -1,7 +1,11 @@
 import { z } from "zod/v4";
 
 import { getRun } from "@multitudes/db/runs";
+import { Button } from "@multitudes/ui/button";
+import { Input } from "@multitudes/ui/input";
+import { Textarea } from "@multitudes/ui/textarea";
 
+import { ModelFields } from "~/components/model-fields";
 import { requireStaff } from "~/server/access";
 import { saveCase } from "~/server/actions";
 
@@ -26,15 +30,15 @@ export default async function NewCasePage({
       </p>
       <section className="panel narrow">
         <form action={saveCase}>
-          <input type="hidden" name="sourceRunId" value={source?.id ?? ""} />
+          <Input type="hidden" name="sourceRunId" value={source?.id ?? ""} />
           <div className="columns">
             <label>
               Name
-              <input name="name" required maxLength={200} />
+              <Input name="name" required maxLength={200} />
             </label>
             <label>
               Dataset
-              <input
+              <Input
                 name="dataset"
                 defaultValue="regression"
                 required
@@ -44,7 +48,7 @@ export default async function NewCasePage({
           </div>
           <label>
             Input
-            <textarea
+            <Textarea
               name="input"
               defaultValue={source?.input}
               required
@@ -54,7 +58,7 @@ export default async function NewCasePage({
           </label>
           <label>
             Output must contain
-            <textarea
+            <Textarea
               name="contains"
               rows={3}
               placeholder="One required substring per line"
@@ -62,17 +66,41 @@ export default async function NewCasePage({
           </label>
           <label>
             Output must not contain
-            <textarea
+            <Textarea
               name="notContains"
               rows={3}
               placeholder="One forbidden substring per line"
             />
           </label>
+          <fieldset className="max-h-none! space-y-4">
+            <legend>LLM judge (optional)</legend>
+            <label>
+              Rubric
+              <Textarea
+                name="judgeRubric"
+                rows={4}
+                maxLength={8000}
+                placeholder="What makes this answer correct and useful? Leave blank for assertions only."
+              />
+            </label>
+            <ModelFields judge provider="gemini" modelId="gemini-3.8-flash" />
+            <label>
+              Pass threshold (0–1)
+              <Input
+                name="judgeThreshold"
+                type="number"
+                min={0}
+                max={1}
+                step={0.05}
+                defaultValue={0.8}
+              />
+            </label>
+          </fieldset>
           <p className="muted">
-            At least one assertion is required. Matching is case-sensitive. This
-            first version evaluates text outputs.
+            At least one assertion or a judge rubric is required. Matching is
+            case-sensitive. This first version evaluates text outputs.
           </p>
-          <button>Save immutable case</button>
+          <Button>Save immutable case</Button>
         </form>
         {source?.output && (
           <details>

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 
+import { ThemeProvider } from "@multitudes/ui/theme";
+import { Toaster } from "@multitudes/ui/toast";
+
 import "./styles.css";
 
 export const metadata: Metadata = {
@@ -10,8 +13,13 @@ export const runtime = "nodejs";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-background text-foreground font-sans antialiased">
+        <ThemeProvider>
+          {children}
+          <Toaster />
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

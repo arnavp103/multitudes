@@ -1,4 +1,7 @@
+import { createLogger } from "@multitudes/observability/logger";
 import { startTelemetry } from "@multitudes/observability/node";
+
+const logger = createLogger("multitudes-agent-worker");
 
 const telemetry = startTelemetry("multitudes-agent-worker");
 const { startWorker } = await import("./worker");
@@ -15,12 +18,13 @@ try {
   for (const signal of ["SIGINT", "SIGTERM"] as const) {
     process.once(signal, () => {
       void shutdown().catch((error: unknown) => {
-        console.error(error);
+        logger.error({ err: error }, "Worker shutdown failed");
         process.exitCode = 1;
       });
     });
   }
 } catch (error) {
+  logger.fatal({ err: error }, "Worker startup failed");
   await telemetry.shutdown();
   throw error;
 }

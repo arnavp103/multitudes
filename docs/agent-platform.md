@@ -20,7 +20,8 @@ is configured.
    locally `local` is sufficient. Production should use the deployed Git SHA.
 4. Register `http://localhost:3001/api/auth/callback/discord` with Discord as an
    additional redirect URL. The product app retains its own callback URL.
-5. Configure AWS credentials/region for Bedrock or `OPENAI_API_KEY` for OpenAI.
+5. Set `GEMINI_API_KEY` for Gemini AI Studio or `DEEPSEEK_API_KEY` for DeepSeek.
+   The defaults are `AGENT_PROVIDER=gemini` and `AGENT_MODEL_ID=gemini-3.8-flash`.
 6. Run `pnpm dev:backend` and `pnpm dev:studio` in separate terminals. Open
    http://localhost:3001 and sign in with an allowlisted, verified email.
 
@@ -44,7 +45,7 @@ import { submitRun } from "@multitudes/agent";
 const runId = await submitRun({
   input: "Summarize this request...",
   configuration: {
-    provider: "bedrock", // or "openai"
+    provider: "gemini", // or "deepseek"
     modelId: configuredModelId,
     systemPrompt: configuredPrompt,
     codeVersion: deployedGitSha,
@@ -72,9 +73,9 @@ with 1–5 trials per case. Inspect per-assertion results and compare against an
 experiment by case ID. Scores distinguish execution failures from assertion
 failures and pending work. The evaluator version is stored with every score.
 
-This first slice supports single-input text tasks and case-sensitive `contains`
-and `not_contains` assertions. The grader boundary in `packages/evals` is where
-LLM judges or Python Strands Evals can be added. It does not yet import historical
+Single-input text tasks support case-sensitive `contains`/`not_contains` assertions
+and tool-free LLM judges with a versioned rubric and pass threshold. The grader
+boundary lives in `packages/evals`. This starter does not import historical
 external traces, author multi-turn/environment fixtures, calculate statistical
 significance, or optimize prompts automatically. Captured trajectories support
 review and regression testing; recording them alone is not self-learning.
@@ -100,8 +101,9 @@ review and regression testing; recording them alone is not self-learning.
 - A periodic reconciler marks runs failed when the queue has exhausted retries or
   cancelled work after a hard crash. Run status therefore converges even when the
   last worker cannot record its own failure.
-- Each invocation has a 240-second cancellation deadline, ten-turn budget and
-  50,000-token soft cap; providers cap generated output at 4,096 tokens per call.
+- Each agent invocation has a 180-second deadline, ten-turn budget and
+  50,000-token soft cap. Judges have a separate 60-second deadline. Providers cap
+  generated output at 4,096 tokens per call.
 
 ## Observability
 
@@ -133,9 +135,179 @@ content filtering before sending production data to an external telemetry servic
 
 ## Validation
 
-`pnpm test` runs model-free Strands checkpoint tests, deterministic grader tests,
-and an in-memory OTel export/correlation/redaction test. The persistence integration
-test requires `TEST_POSTGRES_URL` pointing at a **disposable empty database** and
-creates the agent tables. CI supplies PostgreSQL 17 and checks transactional queue
-rollback, checkpoint byte round-trips, and stale-attempt fencing. It must never
-point at production. A live model/provider smoke test requires your credentials.
+`pnpm test:unit` runs model-free runtime, judge parsing, metering, email, UI, CLI,
+and telemetry tests. `pnpm test:integration` runs real provider adapters against
+HTTP fixtures plus persistence tests using PostgreSQL 17. The database test account
+needs CREATEDB permission on a disposable test server; tests migrate and drop their
+own isolated database. Never point it at production. Live provider smoke tests
+require your credentials and are not part of these suites.
+
+## Shared UI and chat
+
+Both Next.js apps use `@multitudes/ui`, a shared charcoal/teal theme, and
+`next-themes` (dark by default; light and system are available in the sidebar).
+Theme preference is persisted under `multitudes-theme`. The provider injects its
+initialization script before hydration to avoid a theme flash.
+
+The UI package contains source-owned components from the official shadcn
+`new-york-v4` registry and Vercel AI Elements (conversation, message, suggestions,
+reasoning, tools, code blocks, shimmer). `packages/ui/components.json` configures
+the shared CSS and the `@ai-elements` registry. Add components from that package:
+
+```sh
+cd packages/ui
+pnpm dlx shadcn@latest add @ai-elements/conversation
+```
+
+Registry sources: https://ui.shadcn.com/r/styles/new-york-v4/{name}.json and
+https://registry.ai-sdk.dev/{name}.json. Local adaptations use workspace imports,
+repo formatting/lint rules, and current AI SDK types. AI SDK is used for UI types;
+Strands remains the agent runtime. No AI Gateway key is required by these views.
+
+The product app replaces the template post screen with authenticated task chat.
+Studio adds `/playground` with provider/model/prompt controls and a trajectory link.
+Each task is a fresh run, not a persistent multi-turn conversation. Results update
+when persisted by the worker; this is not token streaming. The `run` URL parameter
+lets the UI reconnect after a reload without enqueueing again. Poll failures pause
+and offer Reconnect. A lost submission response is ambiguous: check studio before
+retrying. No automatic resubmission is performed.
+
+Product reads enforce `agent_run.owner_id` against the authenticated session. Old
+runs without an owner remain visible only through staff-protected studio routes.
+Run the new additive migration before using product chat. Studio pages and actions
+continue to require the verified-email allowlist; there is no development bypass.
+
+## Logging conventions
+
+Use `createLogger("multitudes-<service>")` from `@multitudes/observability/logger`
+for Node code. `LOG_LEVEL` is honored centrally. Child bindings carry run IDs and
+attempt numbers; the active OTel trace/span is added automatically. Pino writes
+JSON to stdout and forwards the same redacted records to the OTel log provider.
+Next.js request errors, auth failures, tRPC requests, DB/queue failures, submissions,
+worker lifecycle/model calls, and eval authoring/launching have structured logs.
+
+Use `reportClientError(component, error)` from the separate `/browser` entrypoint
+for UI boundaries. It uses Pino's browser implementation and logs only error type
+and the Next.js digest to the browser console. It does not ship Node exporters or
+transmit client logs. Pure validators and UI primitives do not log every render or
+keystroke. Prompt/response/trajectory content belongs in the protected run store,
+not application logs. Never log request headers, cookies, forms, or provider bodies.
+Error serialization excludes messages/causes because they can contain SQL values
+or model data; safe error types/codes and stack frames remain useful diagnostics.
+
+## Test commands
+
+- `pnpm test` / `pnpm test:unit`: model-free runtime/eval/telemetry unit tests, CLI
+  tests, and jsdom UI tests. No Postgres or provider credentials required.
+- `TEST_POSTGRES_URL=postgres://... pnpm test:integration`: separate
+  `packages/ai/test/integration.test.ts` (HTTP fixtures) and
+  `packages/db/test/integration.test.ts`. Database tests fail if the URL is absent. The
+  account needs CREATEDB permission on a **disposable test server**. Each invocation
+  creates and migrates a uniquely named database, exercises enqueue/rollback,
+  ownership isolation, checkpoints, attempt fencing, and recovery, then drops it.
+  Repeated/concurrent runs do not share tables or pg-boss jobs. Never supply a
+  production connection. A forcibly killed test can leave its temporary database.
+
+CI runs unit and integration suites in distinct jobs and builds both Next.js apps.
+
+## Models, costs, and the admin dashboard
+
+`packages/ai` owns provider construction and metering. Default: Gemini AI Studio
+(`gemini-3.8-flash`, `GEMINI_API_KEY`), with DeepSeek (`deepseek-flash`,
+`DEEPSEEK_API_KEY`) as the other preset. DeepSeek uses the AI SDK provider's V3
+adapter through Strands; it preserves reasoning/tool exchanges and cache usage.
+The provider stays on the compatible 2.x line while Strands expects V3; UI AI SDK
+types are independent. Upgrade the adapter contract together, then run HTTP fixtures.
+Google uses the native Strands Google provider with `vertexai: false`. Existing
+OpenAI/Bedrock configurations remain readable/runnable, but prices for models
+without a rate entry are deliberately unknown.
+
+Every agent or judge model invocation creates a `model_call` row **before** network
+work. It records purpose, provider, model, attempt, timestamps, reported token
+usage and a USD rate snapshot. Usage metadata is persisted as soon as it arrives.
+Finalization updates the same row, so it cannot double-count a completed call.
+Real repeated invocations get distinct rows; superseded attempts still retain
+actual costs. A hard kill, lost provider response, or missing usage leaves a cost
+gap. Telemetry sampling does not affect the ledger. Provider-side retries or
+charges without reported usage still need invoice reconciliation.
+
+`/admin` in studio aggregates 1/7/30-day windows: execution success, pending and
+retried runs, p95 queue-to-finish latency, eval pass rate, judge mean score, model
+usage by purpose, daily calls, estimates, and unknown-cost/unfinished-call counts.
+It is protected by the same verified-email allowlist as the rest of studio.
+
+Prices live in `packages/ai/src/pricing.ts`; snapshots are never retroactively
+rewritten. Verified 2026-10-10 against:
+
+- https://ai.google.dev/gemini-api/docs/pricing (paid standard text, including
+  thinking; scheduled January 2027 rate change included).
+- https://api-docs.deepseek.com/quick_start/pricing/ (peak/off-peak cached and
+  uncached input; Chinese holiday discounts require invoice reconciliation).
+
+The UI labels these **estimates**, not invoices. Free-tier credits, discounts,
+cache storage, and unknown model rates are not invented. Add a rate entry and a
+pricing boundary test whenever adding a model preset. No billable built-in search,
+code-execution, or grounding tools are configured.
+
+## Harness development loop
+
+- Edit `packages/agent/src/prompts/system.ts`; bump its version and the deployed
+  `AGENT_CODE_VERSION`. Each run freezes its actual system prompt and configuration.
+- Keep budgets in `packages/agent/src/policy.ts`. Timeouts, cancellation, turn and
+  token limits are explicit. Token budgets are soft at model-call boundaries.
+- Add application behavior in `packages/api/src/agent-service.ts` (or a domain
+  service), enforcing identity there. The tRPC router and `packages/agent/src/tools.ts`
+  wrap the same service. Models never supply their own actor ID. Existing tools
+  are read-only: capabilities and the authenticated user's task status/result.
+- Inject the service object in tool tests. For future side effects, require a stable
+  idempotency key and durable receipt before registering the tool. Never retry a
+  side effect based only on an LLM's claim. No shell, filesystem, or sandbox tools.
+- Promote production failures into immutable cases; write expectations independently
+  of the candidate. Run repeated trials, review failed trajectories, then compare
+  a baseline experiment before promoting a prompt/model change. There is no
+  automatic prompt self-modification in production.
+- Eval tasks have no production actor by default. The status tool denies access;
+  inject explicit fixture services when extending evals to private tool workflows.
+  Do not grant a judge or evaluator blanket production access.
+
+## LLM judges
+
+Case authoring supports an optional rubric, Gemini/DeepSeek judge model, and a
+0–1 pass threshold. Cases can use assertions, a judge, or both; when both are
+configured, **both must pass**. The judge prompt is independently editable at
+`packages/evals/src/prompts/judge.ts` and versioned. A tool-free judge receives the
+rubric, original input, and candidate as data and must emit a strict JSON verdict.
+Invalid JSON, out-of-range scores, timeouts, or provider failures are execution
+failures, never passes. Review/calibrate rubrics using human-scored examples;
+model grading is probabilistic and susceptible to adversarial candidate text.
+
+The candidate result and judge verdict have separate durable receipts. Retrying
+DB completion does not rerun a successfully saved judge. Failed/incomplete judge
+calls may repeat, each with its own cost record. Costs are displayed separately
+as `agent` and `judge`. The initial judge evaluates final text; tool-sequence and
+multi-turn/environment graders should be added as explicit new evaluator versions.
+
+## Full server telemetry
+
+Both apps now conditionally load `instrumentation.node.ts` from Next's
+`instrumentation.ts`, enable `NEXT_OTEL_VERBOSE=1`, and use the shared NodeSDK.
+This is Next's supported manual setup, equivalent to registering `@vercel/otel`;
+registering both would create competing providers. Next contributes request,
+render, routing, and fetch spans. Node adds HTTP/undici (outbound fetch), Postgres,
+and runtime instrumentation. Application spans cover tRPC, queue context, tools,
+models, evals and email. Root Next request spans generate Pino access logs and
+HTTP counters/duration metrics, not just error logs. These span-derived signals
+follow trace sampling; use unsampled collection or infrastructure metrics for
+complete traffic counts. Query strings are removed
+from exported URL attributes. Client errors use the browser-only Pino entrypoint;
+there is no configured browser log ingestion service.
+
+## Email
+
+`packages/email` uses React Email for HTML and plain-text rendering. Run
+`pnpm dev:email` for template previews on port 3002. `createMailer(transport)`
+accepts a small provider-neutral interface; no provider, API key, or automatic
+sending is configured. Calling `send` without an adapter throws explicitly.
+The caller must pass an idempotency key; future adapters must forward or enforce
+it. There are no implicit retries after ambiguous send failures. Recipient
+addresses, subject, and email content are excluded from logs.

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
 import { appRouter, createTRPCContext } from "@multitudes/api";
+import { createLogger } from "@multitudes/observability/logger";
 
 import { auth } from "~/auth/server";
 
@@ -35,7 +36,10 @@ const handler = async (req: NextRequest) => {
         headers: req.headers,
       }),
     onError({ error, path }) {
-      console.error(`>>> tRPC Error on '${path}'`, error);
+      createLogger("multitudes-webapp").error(
+        { procedure: path, err: error },
+        "tRPC request failed",
+      );
     },
   });
 

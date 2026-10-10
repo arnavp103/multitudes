@@ -17,6 +17,11 @@ export const env = createEnv({
    */
   server: {
     POSTGRES_URL: z.url(),
+    AGENT_PROVIDER: z
+      .enum(["gemini", "deepseek", "bedrock", "openai"])
+      .default("gemini"),
+    AGENT_MODEL_ID: z.string().default("gemini-3.8-flash"),
+    AGENT_CODE_VERSION: z.string().default("local"),
   },
 
   /**

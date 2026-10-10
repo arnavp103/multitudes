@@ -2,6 +2,7 @@
 export default {
   transpilePackages: [
     "@multitudes/auth",
+    "@multitudes/ui",
     "@multitudes/db",
     "@multitudes/agent",
     "@multitudes/evals",

@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { listCases, listExperiments } from "@multitudes/db/runs";
+import { Button } from "@multitudes/ui/button";
+import { Input } from "@multitudes/ui/input";
 
 import { ConfigurationFields } from "~/components/configuration-fields";
 import { requireStaff } from "~/server/access";
@@ -38,7 +40,7 @@ export default async function ExperimentsPage() {
           <form action={startExperiment}>
             <label>
               Name
-              <input name="name" required maxLength={200} />
+              <Input name="name" required maxLength={200} />
             </label>
             <ConfigurationFields />
             <fieldset>
@@ -55,7 +57,7 @@ export default async function ExperimentsPage() {
             </fieldset>
             <label>
               Trials per case
-              <input
+              <Input
                 name="repetitions"
                 type="number"
                 min={1}
@@ -63,7 +65,7 @@ export default async function ExperimentsPage() {
                 defaultValue={1}
               />
             </label>
-            <button disabled={!cases.length}>Queue experiment</button>
+            <Button disabled={!cases.length}>Queue experiment</Button>
           </form>
         </section>
       </div>

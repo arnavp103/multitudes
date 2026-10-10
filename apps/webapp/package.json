@@ -13,6 +13,7 @@
     "with-env": "dotenvx run -f ../../.env --"
   },
   "dependencies": {
+    "@multitudes/agent": "workspace:*",
     "@multitudes/api": "workspace:*",
     "@multitudes/auth": "workspace:*",
     "@multitudes/db": "workspace:*",

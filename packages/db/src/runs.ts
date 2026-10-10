@@ -2,7 +2,13 @@ import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 
-import type { AgentConfiguration, EvalAssertion } from "./agent-schema";
+import { createLogger } from "@multitudes/observability/logger";
+
+import type {
+  AgentConfiguration,
+  EvalAssertion,
+  JudgeConfig,
+} from "./agent-schema";
 import {
   AgentRun,
   EvalCase,
@@ -14,12 +20,14 @@ import {
 import { db, pool } from "./client";
 import { getQueue, RUN_QUEUE } from "./queue";
 
+const logger = createLogger("multitudes-db");
+
 export type Run = typeof AgentRun.$inferSelect;
 export type NewRun = Pick<
   Run,
   "input" | "configuration" | "mode" | "traceContext"
 > &
-  Partial<Pick<Run, "experimentId" | "caseId">>;
+  Partial<Pick<Run, "experimentId" | "caseId" | "ownerId">>;
 
 /** Insert runs and queue jobs on the same Postgres connection/transaction. */
 export async function enqueueRuns(
@@ -48,9 +56,17 @@ export async function enqueueRuns(
       ids.push(id);
     }
     await client.query("COMMIT");
+    logger.info(
+      { run_count: ids.length, experiment_id: experiment?.id },
+      "Runs committed to queue",
+    );
     return ids;
   } catch (error) {
     await client.query("ROLLBACK");
+    logger.error(
+      { err: error, run_count: runs.length },
+      "Enqueue transaction rolled back",
+    );
     throw error;
   } finally {
     client.release();
@@ -91,6 +107,7 @@ export async function createCase(value: {
   input: string;
   assertions: EvalAssertion[];
   sourceRunId?: string;
+  judge?: JudgeConfig;
 }) {
   const [result] = await db.insert(EvalCase).values(value).returning();
   return result;
@@ -132,7 +149,7 @@ export async function beginAttempt(id: string, attempt: number) {
   return run;
 }
 
-async function withAttempt<T>(
+export async function withAttempt<T>(
   runId: string,
   attempt: number,
   fn: (tx: Parameters<Parameters<typeof db.transaction>[0]>[0]) => Promise<T>,
@@ -175,6 +192,12 @@ export async function finishRun(
     passed: boolean;
     details: { assertion: EvalAssertion; passed: boolean }[];
     evaluatorVersion: string;
+    judge?: {
+      score: number;
+      reason: string;
+      passed: boolean;
+      promptVersion: string;
+    };
   },
 ) {
   await withAttempt(runId, attempt, async (tx) => {
@@ -283,4 +306,14 @@ export async function reconcileRuns() {
         );
     }
   }
+}
+
+/** Tenant boundary for product chat. Staff uses the separately protected studio API. */
+export async function getOwnedRun(id: string, ownerId: string) {
+  return (
+    await db
+      .select()
+      .from(AgentRun)
+      .where(and(eq(AgentRun.id, id), eq(AgentRun.ownerId, ownerId)))
+  )[0];
 }

@@ -6,6 +6,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
+    },
+    "./prompts": {
+      "types": "./dist/prompts/system.d.ts",
+      "default": "./src/prompts/system.ts"
     }
   },
   "license": "MIT",
@@ -16,9 +20,11 @@
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint --flag unstable_native_nodejs_ts_config",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
-    "test": "node --import tsx --test test/*.test.ts"
+    "test:unit": "node --import tsx --test test/*.test.ts"
   },
   "dependencies": {
+    "@multitudes/ai": "workspace:*",
+    "@multitudes/api": "workspace:*",
     "@multitudes/db": "workspace:*",
     "@multitudes/observability": "workspace:*",
     "@opentelemetry/api": "^1.9.0",

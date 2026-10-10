@@ -2,13 +2,19 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { z } from "zod/v4";
 
 import { submitRun } from "@multitudes/agent";
 import { authorCase, launchExperiment } from "@multitudes/evals";
 import { withSpan } from "@multitudes/observability/context";
+import { createLogger } from "@multitudes/observability/logger";
 
 import { readStudioEnv } from "~/env";
 import { requireStaff, studioAuth } from "./access";
+
+const providerSchema = z.enum(["gemini", "deepseek", "bedrock", "openai"]);
+
+const logger = createLogger("multitudes-studio");
 
 /** Start OAuth on the studio origin, without exposing provider credentials. */
 export async function signIn() {
@@ -27,10 +33,7 @@ function field(form: FormData, name: string) {
 
 function configuration(form: FormData) {
   return {
-    provider:
-      form.get("provider") === "openai"
-        ? ("openai" as const)
-        : ("bedrock" as const),
+    provider: providerSchema.parse(form.get("provider")),
     modelId: field(form, "modelId"),
     systemPrompt: field(form, "systemPrompt"),
     codeVersion: readStudioEnv().AGENT_CODE_VERSION,
@@ -39,13 +42,15 @@ function configuration(form: FormData) {
 
 /** Queue an interactive test without keeping the HTTP request open for the model. */
 export async function startRun(form: FormData) {
-  await requireStaff();
+  const session = await requireStaff();
   const id = await withSpan("studio.submit_run", {}, () =>
     submitRun({
       input: field(form, "input"),
+      ownerId: session.user.id,
       configuration: configuration(form),
     }),
   );
+  logger.info({ run_id: id }, "Studio task queued");
   redirect(`/runs/${id}`);
 }
 
@@ -64,11 +69,20 @@ export async function saveCase(form: FormData) {
     sourceRunId: field(form, "sourceRunId").length
       ? field(form, "sourceRunId")
       : undefined,
+    judge: field(form, "judgeRubric").trim()
+      ? {
+          provider: field(form, "judgeProvider"),
+          modelId: field(form, "judgeModel"),
+          rubric: field(form, "judgeRubric"),
+          threshold: Number(form.get("judgeThreshold") ?? 0.8),
+        }
+      : undefined,
     assertions: [
       ...lines("contains").map((value) => ({ kind: "contains", value })),
       ...lines("notContains").map((value) => ({ kind: "not_contains", value })),
     ],
   });
+  logger.info("Studio eval case saved");
   redirect("/cases");
 }
 
@@ -86,5 +100,48 @@ export async function startExperiment(form: FormData) {
       configuration: configuration(form),
     }),
   );
+  logger.info({ experiment_id: id }, "Studio experiment queued");
   redirect(`/experiments/${id}`);
+}
+
+/** Playground requests share the same staff boundary and durable runtime as evals. */
+export async function sendPlayground(
+  input: string,
+  config: {
+    provider: "gemini" | "deepseek" | "bedrock" | "openai";
+    modelId: string;
+    systemPrompt: string;
+  },
+) {
+  const session = await requireStaff();
+  const id = await withSpan("studio.playground.submit", {}, () =>
+    submitRun({
+      input,
+      ownerId: session.user.id,
+      configuration: {
+        ...config,
+        codeVersion: readStudioEnv().AGENT_CODE_VERSION,
+      },
+    }),
+  );
+  return { id };
+}
+
+/** Read-only polling never creates a job; all studio data remains staff-only. */
+export async function pollPlayground(id: string) {
+  await requireStaff();
+  const { z } = await import("zod/v4");
+  const { getRun } = await import("@multitudes/db/runs");
+  const run = await getRun(z.uuid().parse(id));
+  if (!run) throw new Error("Run not found");
+  return {
+    id: run.id,
+    input: run.input,
+    status: run.status,
+    output: run.output,
+    error:
+      run.status === "failed"
+        ? "The task failed. Inspect its trajectory for details."
+        : null,
+  };
 }

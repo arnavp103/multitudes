@@ -1,6 +1,15 @@
 import Link from "next/link";
 
 import { listCases } from "@multitudes/db/runs";
+import { buttonVariants } from "@multitudes/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@multitudes/ui/table";
 
 import { requireStaff } from "~/server/access";
 
@@ -14,7 +23,7 @@ export default async function CasesPage() {
           <p className="eyebrow">CURATE / EXPECTATIONS</p>
           <h1>Eval cases</h1>
         </div>
-        <Link className="button" href="/cases/new">
+        <Link className={buttonVariants()} href="/cases/new">
           Author a case
         </Link>
       </div>
@@ -24,29 +33,38 @@ export default async function CasesPage() {
       </p>
       <section className="panel">
         {cases.length ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Case</th>
-                <th>Dataset</th>
-                <th>Assertions</th>
-                <th>Source</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Case</TableHead>
+                <TableHead>Dataset</TableHead>
+                <TableHead>Assertions</TableHead>
+                <TableHead>Source</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {cases.map((item) => (
-                <tr key={item.id}>
-                  <td>
+                <TableRow key={item.id}>
+                  <TableCell>
                     <strong>{item.name}</strong>
                     <details>
                       <summary>Input and expectations</summary>
                       <pre>{item.input}</pre>
-                      <pre>{JSON.stringify(item.assertions, null, 2)}</pre>
+                      <pre>
+                        {JSON.stringify(
+                          { assertions: item.assertions, judge: item.judge },
+                          null,
+                          2,
+                        )}
+                      </pre>
                     </details>
-                  </td>
-                  <td>{item.dataset}</td>
-                  <td>{item.assertions.length}</td>
-                  <td>
+                  </TableCell>
+                  <TableCell>{item.dataset}</TableCell>
+                  <TableCell>
+                    {item.assertions.length}
+                    {item.judge && " + LLM judge"}
+                  </TableCell>
+                  <TableCell>
                     {item.sourceRunId ? (
                       <Link href={`/runs/${item.sourceRunId}`}>
                         Production trajectory
@@ -54,11 +72,11 @@ export default async function CasesPage() {
                     ) : (
                       "Authored"
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         ) : (
           <p className="empty">
             Author a case or promote a production run to get started.

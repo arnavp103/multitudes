@@ -19,6 +19,8 @@ packages, and workspace tooling.
 │   ├── studio/
 │   └── backend/
 ├── packages/
+│   ├── ai/
+│   ├── email/
 │   ├── agent/
 │   ├── evals/
 │   ├── observability/

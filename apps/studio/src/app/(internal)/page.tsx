@@ -1,6 +1,17 @@
 import Link from "next/link";
 
 import { listRuns } from "@multitudes/db/runs";
+import { Button } from "@multitudes/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@multitudes/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@multitudes/ui/table";
+import { Textarea } from "@multitudes/ui/textarea";
 
 import { ConfigurationFields } from "~/components/configuration-fields";
 import { LiveRefresh } from "~/components/live-refresh";
@@ -17,6 +28,43 @@ export default async function RunsPage() {
       <p className="muted">
         Durable trajectories from your shared production and evaluation runtime.
       </p>
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        {[
+          {
+            title: "Recent runs",
+            value: runs.length,
+            detail: "Latest 100 trajectories",
+          },
+          {
+            title: "In progress",
+            value: runs.filter(
+              (run) => run.status === "queued" || run.status === "running",
+            ).length,
+            detail: "Queued and running",
+          },
+          {
+            title: "Needs attention",
+            value: runs.filter((run) => run.status === "failed").length,
+            detail: "Failed runs in this window",
+          },
+        ].map((item) => (
+          <Card key={item.title}>
+            <CardHeader className="pb-0">
+              <CardTitle className="text-muted-foreground text-xs font-medium">
+                {item.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold tracking-tight">
+                {item.value}
+              </p>
+              <p className="text-muted-foreground mt-2 text-xs">
+                {item.detail}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
       <div className="workspace">
         <section className="panel">
           <div className="section-title">
@@ -28,34 +76,34 @@ export default async function RunsPage() {
             />
           </div>
           {runs.length ? (
-            <table>
-              <thead>
-                <tr>
-                  <th>Input</th>
-                  <th>Mode</th>
-                  <th>Status</th>
-                  <th>Started</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Input</TableHead>
+                  <TableHead>Mode</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Started</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {runs.map((run) => (
-                  <tr key={run.id}>
-                    <td>
+                  <TableRow key={run.id}>
+                    <TableCell>
                       <Link href={`/runs/${run.id}`}>
                         {run.input.slice(0, 90)}
                       </Link>
-                    </td>
-                    <td>{run.mode}</td>
-                    <td>
+                    </TableCell>
+                    <TableCell>{run.mode}</TableCell>
+                    <TableCell>
                       <span className={`status ${run.status}`}>
                         {run.status}
                       </span>
-                    </td>
-                    <td>{run.createdAt.toLocaleString()}</td>
-                  </tr>
+                    </TableCell>
+                    <TableCell>{run.createdAt.toLocaleString()}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           ) : (
             <p className="empty">
               No runs yet. Submit a task to capture your first trajectory.
@@ -67,7 +115,7 @@ export default async function RunsPage() {
           <form action={startRun}>
             <label>
               Task
-              <textarea
+              <Textarea
                 name="input"
                 rows={4}
                 required
@@ -76,7 +124,7 @@ export default async function RunsPage() {
               />
             </label>
             <ConfigurationFields />
-            <button>Queue run</button>
+            <Button>Queue run</Button>
           </form>
         </section>
       </div>

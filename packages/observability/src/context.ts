@@ -6,6 +6,8 @@ import {
   trace,
 } from "@opentelemetry/api";
 
+import { safeError } from "./logger";
+
 /** Serialize W3C context into a durable job payload. */
 export function captureTraceContext() {
   const carrier: Record<string, string> = {};
@@ -30,7 +32,12 @@ export function withSpan<T>(
         try {
           return await fn();
         } catch (error) {
-          span.recordException(error instanceof Error ? error : String(error));
+          const safe = safeError(error);
+          span.recordException({
+            name: safe.type,
+            message: "Operation failed; inspect correlated logs",
+            stack: "frames" in safe ? safe.frames : undefined,
+          });
           span.setStatus({ code: SpanStatusCode.ERROR });
           throw error;
         } finally {
