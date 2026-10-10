@@ -1,36 +1,25 @@
 import { headers } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { Button } from "@multitudes/ui/button";
 
 import { auth, getSession } from "~/auth/server";
 
+/** Header account controls: sign-in/sign-up links, or the signed-in user's menu. */
 export async function AuthShowcase() {
   const session = await getSession();
 
   if (!session) {
     return (
-      <form>
-        <Button
-          size="sm"
-          variant="outline"
-          formAction={async () => {
-            "use server";
-            const res = await auth.api.signInSocial({
-              body: {
-                provider: "discord",
-                callbackURL: "/",
-              },
-            });
-            if (!res.url) {
-              throw new Error("No URL returned from signInSocial");
-            }
-            redirect(res.url);
-          }}
-        >
-          Sign in with Discord
+      <div className="flex items-center gap-2">
+        <Button asChild size="sm" variant="ghost">
+          <Link href="/sign-in">Sign in</Link>
         </Button>
-      </form>
+        <Button asChild size="sm" variant="outline">
+          <Link href="/sign-up">Sign up</Link>
+        </Button>
+      </div>
     );
   }
 
@@ -39,6 +28,10 @@ export async function AuthShowcase() {
       <p className="hidden text-xs sm:block">
         <span>{session.user.name}</span>
       </p>
+
+      <Button asChild size="sm" variant="ghost">
+        <Link href="/settings">Settings</Link>
+      </Button>
 
       <form>
         <Button

@@ -6,6 +6,8 @@ import { eq } from "@multitudes/db";
 import { db, pool } from "@multitudes/db/client";
 import { session as sessionTable, user } from "@multitudes/db/schema";
 
+import { DEV_PASSWORD } from "../src/seed";
+
 const webUrl = process.env.WEBAPP_URL ?? "http://localhost:3000";
 const studioUrl = process.env.STUDIO_URL ?? "http://localhost:3001";
 /** Use real signed sessions; only the external identity-provider interaction is bypassed. */
@@ -21,8 +23,6 @@ async function identity(
     productionUrl: baseUrl,
     cookiePrefix: `multitudes-${app}`,
     secret: process.env.AUTH_SECRET,
-    discordClientId: "fixture",
-    discordClientSecret: "fixture",
   });
   const { test: helpers } = await auth.$context;
   const account = await helpers.saveUser(
@@ -114,6 +114,66 @@ test("product chat completes through the real queue/worker and reconnects after 
   await expect(
     page.getByText("Fixture result: your task completed.", { exact: true }),
   ).toHaveCount(0);
+});
+
+test("product users sign up, sign out, and sign back in with a password", async ({
+  page,
+}) => {
+  const email = `${randomUUID()}@example.test`;
+  const password = "correct horse battery";
+  await page.goto(webUrl);
+  await page.getByRole("link", { name: "Sign up" }).click();
+  await page.getByLabel("Name").fill("Password person");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill(password);
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page).toHaveURL(`${webUrl}/`);
+  await expect(page.getByText("Password person")).toBeVisible();
+  await page.getByRole("link", { name: "Settings" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Settings", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Nothing to configure yet")).toBeVisible();
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
+  await page.goto(`${webUrl}/settings`);
+  await expect(page).toHaveURL(`${webUrl}/sign-in`);
+  await page.goto(webUrl);
+  await page.getByRole("link", { name: "Sign in" }).click();
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("not the password");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.getByText("Invalid email or password")).toBeVisible();
+  await page.getByLabel("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(`${webUrl}/`);
+  await expect(page.getByText("Password person")).toBeVisible();
+});
+
+test("seeded staff sign in to Studio with a password; Studio has no sign-up", async ({
+  page,
+  context,
+}) => {
+  const signUp = await context.request.post(
+    `${studioUrl}/api/auth/sign-up/email`,
+    {
+      headers: { origin: studioUrl },
+      data: {
+        name: "Self-service staff",
+        email: `${randomUUID()}@example.test`,
+        password: "correct horse battery",
+      },
+    },
+  );
+  expect(signUp.ok()).toBe(false);
+  await page.goto(studioUrl);
+  await expect(page).toHaveURL(`${studioUrl}/login`);
+  await page.getByLabel("Email").fill("admin@multitudes.test");
+  await page.getByLabel("Password").fill(DEV_PASSWORD);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Agent runs", exact: true }),
+  ).toBeVisible();
 });
 
 test("staff promotes production input to an eval and observes a completed experiment", async ({

@@ -19,8 +19,6 @@ const env = {
   WEBAPP_URL: `http://localhost:${webPort}`,
   STUDIO_URL: `http://localhost:${studioPort}`,
   AUTH_SECRET: "e2e-only-auth-secret-never-use-in-production",
-  AUTH_DISCORD_ID: "fixture",
-  AUTH_DISCORD_SECRET: "fixture",
   AGENT_CODE_VERSION: "e2e",
   AGENT_PROVIDER: "gemini",
   AGENT_MODEL_ID: "gemini-3.8-flash",

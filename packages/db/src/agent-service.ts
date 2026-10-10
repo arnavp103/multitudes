@@ -32,16 +32,6 @@ export async function getTaskStatus(
   });
 }
 
-/** Public capability metadata; no credentials, environment values, or private data. */
-export function getAgentCapabilities() {
-  return {
-    tools: ["get_task_status", "get_agent_capabilities"],
-    canSendEmail: false,
-    canExecuteCode: false,
-    persistentMemory: false,
-  };
-}
-
 /** Validated immutable fixture data shared by authoring and worker admission. */
 export const taskFixturesSchema = z
   .record(
@@ -61,7 +51,6 @@ export const taskFixturesSchema = z
 export function createFixtureServices(input: TaskFixtures) {
   const fixtures = taskFixturesSchema.parse(input);
   return {
-    getAgentCapabilities,
     getTaskStatus: (actorId: string | undefined, input: { runId: string }) =>
       getTaskStatus(actorId, input, (id) =>
         Promise.resolve(

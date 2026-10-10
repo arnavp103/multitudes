@@ -1,6 +1,4 @@
-import { Button } from "@multitudes/ui/button";
-
-import { signIn } from "~/server/actions";
+import { SignInForm } from "~/components/sign-in-form";
 
 export default function Login() {
   return (
@@ -10,11 +8,10 @@ export default function Login() {
       <p>
         Review production trajectories. Turn failures into regression tests.
       </p>
-      <form action={signIn}>
-        <Button>Continue with Discord</Button>
-      </form>
+      <SignInForm />
       <p className="muted">
-        Access requires a verified email on the studio allowlist.
+        Studio accounts are provisioned by an administrator and need a staff
+        role.
       </p>
     </main>
   );

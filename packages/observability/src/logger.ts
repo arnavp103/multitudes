@@ -2,10 +2,32 @@ import { Writable } from "node:stream";
 import { context, isSpanContextValid, trace } from "@opentelemetry/api";
 import { logs } from "@opentelemetry/api-logs";
 import pino from "pino";
+import pinoPretty from "pino-pretty";
 
 import { APP_VERSION } from "./build-info.generated";
 
-/** Create JSON logs and export the same redacted records through the OTel provider. */
+let prettyStdout: ReturnType<typeof pinoPretty> | undefined;
+
+/**
+ * Human-readable stdout for local development only, shared by every logger in
+ * the process. Runs in-process (not as a worker-thread transport) so it also
+ * works inside bundled Next.js servers.
+ */
+function readableStdout() {
+  return (prettyStdout ??= pinoPretty({
+    colorize: true,
+    sync: true,
+    translateTime: "SYS:HH:MM:ss.l",
+    ignore: "pid,hostname,service,version",
+    messageFormat: "[{service}] {msg}",
+  }));
+}
+
+/**
+ * Create redacted logs and export the same records through the OTel provider.
+ * Stdout is structured JSON except when NODE_ENV is "development", where it is
+ * pretty-printed; the OTel export always receives the JSON records.
+ */
 export function createLogger(
   service: string,
   level = process.env.LOG_LEVEL ?? "info",
@@ -94,7 +116,13 @@ export function createLogger(
       },
     },
     pino.multistream([
-      { stream: process.stdout, level: "trace" },
+      {
+        stream:
+          process.env.NODE_ENV === "development"
+            ? readableStdout()
+            : process.stdout,
+        level: "trace",
+      },
       { stream: sink, level: "trace" },
     ]),
   );

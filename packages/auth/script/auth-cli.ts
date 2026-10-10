@@ -23,6 +23,4 @@ export const auth = initAuth({
   productionUrl: "http://localhost:3000",
   secret: "schema-generation-only-not-a-runtime-secret",
   cookiePrefix: "multitudes-webapp",
-  discordClientId: "1234567890",
-  discordClientSecret: "1234567890",
 });

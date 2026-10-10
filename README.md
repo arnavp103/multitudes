@@ -11,9 +11,11 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 ## Getting started
 
 For the isolated local stack, install dependencies and run `pnpm dev:up`
-(Docker Compose v2 required). In another terminal, run `pnpm dev:login studio admin`.
+(Docker Compose v2 required). Sign in with a seeded account such as
+`admin@multitudes.test` / `multitudes-local`, sign up on the webapp, or run
+`pnpm dev:login studio admin` in another terminal.
 See [local development](docs/development.md) for fixtures and browser testing.
-The steps below configure an existing database and OAuth provider instead.
+The steps below configure an existing database instead.
 
 1. Install dependencies:
 
@@ -21,17 +23,11 @@ The steps below configure an existing database and OAuth provider instead.
    pnpm install
    ```
 
-2. Create the environment files from the commented template:
+2. Get access to the environment files. `.env`, `.env.staging`, and `.env.production` are committed, encrypted with [dotenvx](https://dotenvx.com); there is no template to copy. Ask a maintainer for the matching private keys and keep them in the ignored `.env.keys` file (or export them as `DOTENV_PRIVATE_KEY`, `DOTENV_PRIVATE_KEY_STAGING`, and `DOTENV_PRIVATE_KEY_PRODUCTION`).
 
-   ```sh
-   cp .env.example .env
-   cp .env.example .env.staging
-   cp .env.example .env.production
-   ```
+   Change a value with `pnpm exec dotenvx set <KEY> <value> -f <file>`, which encrypts it in place; remove an unused key by deleting its line. The apps read `POSTGRES_URL`, `AUTH_SECRET` (32+ characters; generate with `openssl rand -base64 32`), `WEBAPP_URL`, `STUDIO_URL`, `GEMINI_API_KEY`, and `AGENT_CODE_VERSION`, plus optional `AGENT_MODEL_ID`, `LOG_LEVEL`, `WORKER_CONCURRENCY`, `PORT`, standard `OTEL_*` settings, and `AUTH_PRODUCTION_URL` / `STUDIO_AUTH_PRODUCTION_URL` (OAuth proxy origins for preview deployments).
 
-   Uncomment and set `POSTGRES_URL` to your Postgres connection string, along with `AUTH_SECRET` and the Discord OAuth credentials. Generate an auth secret with `openssl rand -base64 32`.
-
-   Run commands with a selected environment file using `pnpm exec dotenvx run -f .env.staging -- <command>` or `pnpm exec dotenvx run -f .env.production -- <command>`. Encrypt files before committing them with `pnpm exec dotenvx encrypt -f .env.staging -f .env.production`; keep `.env.keys*` private and provide the matching `DOTENV_PRIVATE_KEY_*` values to deployment environments.
+   Run commands with a selected environment file using `pnpm exec dotenvx run -f .env.staging -- <command>` or `pnpm exec dotenvx run -f .env.production -- <command>`. Provide the matching `DOTENV_PRIVATE_KEY_*` values to deployment environments and never commit `.env.keys*`.
 
    The pre-commit hook blocks unencrypted dotenv files and scans staged changes with Gitleaks. Install Gitleaks locally with `go install github.com/zricethezav/gitleaks/v8@v8.30.1`.
 
@@ -90,7 +86,7 @@ Use Conventional Commit messages with a non-empty scope, for example `feat(webap
 
 ## Before deploying
 
-Configure the environment variables in your hosting provider, including the database connection, auth secret, and OAuth credentials. Set up the OAuth provider's callback URL for your deployed app. Update the app metadata and deployment settings in `apps/webapp` for your domain.
+Configure the environment variables in your hosting provider, including the database connection and auth secret, then provision a Studio administrator with `pnpm auth:bootstrap-admin <email> --password`. Update the app metadata and deployment settings in `apps/webapp` for your domain.
 
 The `@multitudes/*` package scope is a placeholder; replace it with your own scope when you customize the workspace.
 

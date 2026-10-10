@@ -114,9 +114,11 @@ export function WorkspaceShell({
             <span className="text-muted-foreground text-sm">
               {studio ? "Agent studio" : "Agent workspace"}
             </span>
-            <Badge variant="outline" className="text-[10px]">
-              {studio ? "INTERNAL" : "PREVIEW"}
-            </Badge>
+            {studio && (
+              <Badge variant="outline" className="text-[10px]">
+                INTERNAL
+              </Badge>
+            )}
           </div>
           <div className="text-muted-foreground truncate text-xs">
             {account}

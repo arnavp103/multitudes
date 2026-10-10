@@ -6,12 +6,10 @@ import { submitRun } from "@multitudes/agent";
 import { SYSTEM_PROMPT } from "@multitudes/agent/prompts";
 import { getOwnedRun } from "@multitudes/db/runs";
 import { withSpan } from "@multitudes/observability/context";
-import { createLogger } from "@multitudes/observability/logger";
 
 import { getSession } from "~/auth/server";
 import { env } from "~/env";
-
-const logger = createLogger("multitudes-webapp");
+import { logger } from "~/logger/server";
 
 /** Use server-selected configuration and the authenticated owner, never client identity. */
 export async function sendTask(input: string, requestKey: string) {

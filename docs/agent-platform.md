@@ -10,16 +10,18 @@ is configured.
 
 Run `pnpm install`, then `pnpm dev:up`. This starts an isolated Postgres database,
 webapp, Studio, and worker for the current checkout. Sign in with
+`admin@multitudes.test` / `multitudes-local` at Studio `/login`, or run
 `pnpm dev:login studio admin`. See [development.md](development.md) for prerequisites,
 fixture/live model modes, concurrent worktrees, and authenticated browser tests.
 
 For manually managed environments, set `POSTGRES_URL`, app URLs, a 32+ character
-`AUTH_SECRET`, Discord credentials, `GEMINI_API_KEY`, and `AGENT_CODE_VERSION`.
+`AUTH_SECRET`, `GEMINI_API_KEY`, and `AGENT_CODE_VERSION`.
 Run `pnpm db:migrate` before deployment. It applies both the core/auth baseline
 and additive agent migrations, using separate journals. Existing schema-pushed
 installations must be checked against the baseline before adoption. pg-boss still
-manages its own `pgboss` schema at startup. Bootstrap a verified administrator
-with `pnpm auth:bootstrap-admin <email>`; runtime email allowlists are no longer used.
+manages its own `pgboss` schema at startup. Provision a Studio administrator
+with `pnpm auth:bootstrap-admin <email> --password`; runtime email allowlists are no
+longer used.
 
 Every Studio page query and server action checks role permissions. Apps and worker
 share the same agent code version. Studio uses the Node runtime and keeps secrets
@@ -179,15 +181,23 @@ continue to require the verified-account role checks; there is no development by
 ## Logging conventions
 
 Use `createLogger("multitudes-<service>")` from `@multitudes/observability/logger`
-for Node code. `LOG_LEVEL` is honored centrally. Child bindings carry run IDs and
+for Node code. The webapp wraps this in one module: server code imports `logger`
+from `~/logger/server`, and client components import `logger`/`reportError` from
+`~/logger/browser`; ESLint rejects direct observability logger imports elsewhere
+in `apps/webapp`. `LOG_LEVEL` is honored centrally. Child bindings carry run IDs and
 attempt numbers; the active OTel trace/span is added automatically. Pino writes
 JSON to stdout and forwards the same redacted records to the OTel log provider.
+When `NODE_ENV=development` (as under `pnpm dev:up`), stdout is pretty-printed
+in-process with `pino-pretty` instead; the OTel export still receives JSON, and
+production/test output is unchanged.
 Next.js request errors, auth failures, tRPC requests, DB/queue failures, submissions,
 worker lifecycle/model calls, and eval authoring/launching have structured logs.
 
 Use `reportClientError(component, error)` from the separate `/browser` entrypoint
 for UI boundaries. It uses Pino's browser implementation and logs only error type
-and the Next.js digest to the browser console. It does not ship Node exporters or
+and the Next.js digest to the browser console. Development builds print a styled
+`LEVEL time message` line with the fields as an inspectable object; other builds
+log Pino's structured record objects. It does not ship Node exporters or
 transmit client logs. Pure validators and UI primitives do not log every render or
 keystroke. Prompt/response/trajectory content belongs in the protected run store,
 not application logs. Never log request headers, cookies, forms, or provider bodies.
@@ -257,8 +267,8 @@ code-execution, or grounding tools are configured.
   token limits are explicit. Token budgets are soft at model-call boundaries.
 - Add application behavior in `packages/api/src/agent-service.ts` (or a domain
   service), enforcing identity there. The tRPC router and `packages/agent/src/tools.ts`
-  wrap the same service. Models never supply their own actor ID. Existing tools
-  are read-only: capabilities and the authenticated user's task status/result.
+  wrap the same service. Models never supply their own actor ID. The only
+  existing tool is read-only: the authenticated user's task status/result.
 - Inject the service object in tool tests. For future side effects, require a stable
   idempotency key and durable receipt before registering the tool. Never retry a
   side effect based only on an LLM's claim. No shell, filesystem, or sandbox tools.

@@ -6,6 +6,7 @@ import { admin, oAuthProxy } from "better-auth/plugins";
 import { db } from "@multitudes/db/client";
 import { createLogger } from "@multitudes/observability/logger";
 
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "./password";
 import { ac, roles } from "./permissions";
 
 const logger = createLogger("multitudes-auth");
@@ -14,10 +15,14 @@ export interface AuthOptions {
   productionUrl: string;
   secret: string | undefined;
   cookiePrefix: string;
-  discordClientId: string;
-  discordClientSecret: string;
   database?: typeof db;
+  /**
+   * Allow self-service email/password sign-up. Off by default: Studio staff are
+   * provisioned with `pnpm auth:bootstrap-admin`, and only the webapp opts in.
+   */
+  allowSignUp?: boolean;
 }
+
 /** Preserve concrete plugin inference for admin APIs and separate test-only helpers. */
 export function initAuth<const P extends BetterAuthPlugin[] = []>(
   options: AuthOptions & { extraPlugins?: P },
@@ -30,6 +35,16 @@ export function initAuth<const P extends BetterAuthPlugin[] = []>(
     baseURL: options.baseUrl,
     secret: options.secret,
     trustedOrigins: [options.baseUrl],
+    emailAndPassword: {
+      enabled: true,
+      disableSignUp: !options.allowSignUp,
+      minPasswordLength: MIN_PASSWORD_LENGTH,
+      maxPasswordLength: MAX_PASSWORD_LENGTH,
+      // No email transport is configured, so addresses are not verified yet.
+      // Studio still requires a verified address, which only an operator sets.
+      requireEmailVerification: false,
+      revokeSessionsOnPasswordReset: true,
+    },
     advanced: { cookiePrefix: options.cookiePrefix },
     session: {
       expiresIn: 60 * 60 * 24 * 7,
@@ -50,13 +65,6 @@ export function initAuth<const P extends BetterAuthPlugin[] = []>(
         : []),
       ...(options.extraPlugins ?? ([] as unknown as P)),
     ],
-    socialProviders: {
-      discord: {
-        clientId: options.discordClientId,
-        clientSecret: options.discordClientSecret,
-        redirectURI: `${options.productionUrl}/api/auth/callback/discord`,
-      },
-    },
     onAPIError: {
       onError(error) {
         logger.error({ err: error }, "Auth API failed");

@@ -18,9 +18,14 @@ API calls. Set `GEMINI_API_KEY` in the invoking shell to opt into live, billable
 Gemini calls. Auth and database secrets still remain local. The fixture is loaded
 by the dev/test runner, never by production worker configuration.
 
-## Local sign-in without Discord
+## Local sign-in
 
-In another terminal, run `pnpm dev:login studio admin` or
+Seeded accounts are `<role>@multitudes.test` (`admin`, `evaluator`, `viewer`,
+`user`) with the local-only password `multitudes-local`; `pnpm dev:up` prints it.
+Use them on the webapp `/sign-in` page or the Studio `/login` page. You can also
+create webapp accounts at `/sign-up`.
+
+To skip the form, in another terminal, run `pnpm dev:login studio admin` or
 `pnpm dev:login webapp user`. Other seeded roles are `viewer` and `evaluator`.
 Open the printed one-time link within two minutes. A temporary loopback server
 sets a real signed HttpOnly cookie and redirects to the app, then shuts down.
@@ -41,9 +46,9 @@ prefixes even on localhost, where different ports otherwise share cookies.
 `packages/db/testing` creates a random database, migrates it, and drops that exact
 database in cleanup. Simultaneous test commands do not share databases or ports.
 The browser runner uses actual production Next builds and the actual queue/worker;
-only Google HTTP is stubbed. It exercises lost submission responses, reloads,
-owner isolation, auth denial, eval promotion, experiment completion, and admin
-role/ban/session controls. CI stores browser traces/screenshots on failure.
+only Google HTTP is stubbed. It exercises password sign-up/sign-in/sign-out, Studio
+staff sign-in, lost submission responses, reloads, owner isolation, auth denial,
+eval promotion, experiment completion, and admin role/ban/session controls. CI stores browser traces/screenshots on failure.
 An uncatchable process kill can leave a `multitudes_test_*` database behind.
 
 `packages/auth/testing` exposes Better Auth testUtils through a separate auth
@@ -54,11 +59,12 @@ mock `getSession`. New test identities must be unique per test.
 ## Auth deployment and migrations
 
 Set `WEBAPP_URL` and `STUDIO_URL` to the externally visible URLs. Each is its own
-trusted origin. OAuth callbacks use that app's URL by default. Set
+trusted origin. Sign-in is email and password only; no social sign-in providers
+are configured, and any future OAuth callbacks use that app's URL by default. Set
 `AUTH_PRODUCTION_URL` / `STUDIO_AUTH_PRODUCTION_URL` only when deliberately using
-the OAuth proxy for preview environments. Register the callback URLs with Discord.
-Use one shared strong `AUTH_SECRET` of at least 32 characters. Cookies are scoped
-per app; no cross-subdomain SSO is enabled. Sessions last seven days, refresh daily,
+the OAuth proxy for preview environments. Use one shared strong `AUTH_SECRET` of
+at least 32 characters. Cookies are scoped per app; no cross-subdomain SSO is
+enabled. Sessions last seven days, refresh daily,
 and remain authoritative database reads without cookie caching. Auth HTTP rate
 limits use the shared PostgreSQL rate_limit table. Application submission quotas
 and spending controls are separate work, not implemented by this change.
@@ -72,11 +78,23 @@ existing data remain intact. Apply migrations before deploying the new apps.
 Use `pnpm auth:generate` when changing plugins, then `pnpm db:generate`; review
 and commit the resulting migrations. Do not use db:push for deployments.
 
-Sign in once with your real verified account, then run
-`pnpm auth:bootstrap-admin your-verified-email@example.com` against the intended
-database. This explicit operator command only promotes an existing verified
-identity; it never creates or verifies an account. Existing email allowlists no
-longer grant access. Add further access in Studio `/users`:
+The webapp allows self-service sign-up at `/sign-up` (passwords of 8–128
+characters). No email transport is configured, so those addresses stay unverified
+and receive the `user` role. Studio has no sign-up and requires a verified address,
+so staff are provisioned by an operator against the intended database:
+
+```sh
+pnpm auth:bootstrap-admin you@example.com --password [--name "Your Name"] [--role admin]
+```
+
+The command prompts twice for a password without echoing it (or reads the first
+line of piped stdin), creates the account if needed, marks the address verified,
+sets the role (default `admin`), replaces any existing password, and revokes the
+account's sessions. Because it re-keys an existing self-registered account, only
+run it for addresses you control. Without `--password` it only promotes an existing
+verified account. Use the same command to reset a staff password; self-service
+password reset needs an email transport and is not available yet. Change roles
+of existing verified accounts in Studio `/users`:
 
 | Role      | Access                                                              |
 | --------- | ------------------------------------------------------------------- |
@@ -86,7 +104,7 @@ longer grant access. Add further access in Studio `/users`:
 | admin     | Evaluator plus list users, assign roles, ban/unban, revoke sessions |
 
 Application actions enforce these permissions server-side. Admin roles have no
-impersonation, deletion, or password-reset permission. Role changes made in Studio
+impersonation, deletion, or password-reset permission in Studio. Role changes made in Studio
 revoke the affected user's sessions; bans use the plugin's session revocation.
 The UI blocks changing your own role or ban status. Admin actions emit metadata
 through Pino; a transactional business-event audit log is separate future work.

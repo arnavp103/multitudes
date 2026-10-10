@@ -13,7 +13,7 @@ import { readStudioEnv } from "~/env";
 
 let auth: ReturnType<typeof createStudioAuth> | undefined;
 
-/** Separate OAuth origin; reuses the existing auth schema and identity provider. */
+/** Separate auth origin and cookies; reuses the shared auth schema and accounts. */
 function createStudioAuth() {
   const env = readStudioEnv();
   return initAuth({
@@ -21,8 +21,6 @@ function createStudioAuth() {
     productionUrl: env.STUDIO_AUTH_PRODUCTION_URL ?? env.STUDIO_URL,
     cookiePrefix: "multitudes-studio",
     secret: env.AUTH_SECRET,
-    discordClientId: env.AUTH_DISCORD_ID,
-    discordClientSecret: env.AUTH_DISCORD_SECRET,
     extraPlugins: [nextCookies()],
   });
 }

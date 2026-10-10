@@ -9,7 +9,7 @@ import { migrateDatabase } from "@multitudes/db/migrate";
 import { user } from "@multitudes/db/schema";
 
 import { freePort, interrupted, launch, root } from "./processes";
-import { seed } from "./seed";
+import { DEV_PASSWORD, seed } from "./seed";
 
 const profilePath = `${root}.local/profile.json`;
 const profileSchema = z.object({
@@ -54,8 +54,6 @@ const env: NodeJS.ProcessEnv = {
   AUTH_PRODUCTION_URL: `http://localhost:${profile.webPort}`,
   STUDIO_AUTH_PRODUCTION_URL: `http://localhost:${profile.studioPort}`,
   AUTH_SECRET: profile.secret,
-  AUTH_DISCORD_ID: process.env.AUTH_DISCORD_ID ?? "local-fixture",
-  AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET ?? "local-fixture",
   AGENT_CODE_VERSION: "local",
   PORT: String(profile.workerPort),
   OTEL_SDK_DISABLED: process.env.OTEL_EXPORTER_OTLP_ENDPOINT ? "false" : "true",
@@ -107,8 +105,6 @@ if (command === "down") {
         productionUrl: baseUrl,
         cookiePrefix: `multitudes-${app}`,
         secret: profile.secret,
-        discordClientId: "fixture",
-        discordClientSecret: "fixture",
       };
       const { createTestAuth } = await import("@multitudes/auth/testing");
       const { test } = await createTestAuth(options).$context;
@@ -181,7 +177,7 @@ if (command === "down") {
         );
       }
       console.info(
-        `Webapp: ${env.WEBAPP_URL}\nStudio: ${env.STUDIO_URL}\nSign in: pnpm dev:login studio admin`,
+        `Webapp: ${env.WEBAPP_URL}\nStudio: ${env.STUDIO_URL}\nSign in: pnpm dev:login studio admin, or use <admin|evaluator|viewer|user>@multitudes.test with password ${DEV_PASSWORD}`,
       );
       const processes = [
         launch(

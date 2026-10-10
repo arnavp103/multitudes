@@ -1,6 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod/v4";
 
@@ -10,20 +9,11 @@ import { withSpan } from "@multitudes/observability/context";
 import { createLogger } from "@multitudes/observability/logger";
 
 import { readStudioEnv } from "~/env";
-import { requireStaff, studioAuth } from "./access";
+import { requireStaff } from "./access";
 
 const providerSchema = z.literal("gemini");
 
 const logger = createLogger("multitudes-studio");
-
-/** Start OAuth on the studio origin, without exposing provider credentials. */
-export async function signIn() {
-  const result = await studioAuth().api.signInSocial({
-    headers: await headers(),
-    body: { provider: "discord", callbackURL: "/" },
-  });
-  if (result.url) redirect(result.url);
-}
 
 function field(form: FormData, name: string) {
   const value = form.get(name);
