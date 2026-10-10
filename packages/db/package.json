@@ -26,11 +26,11 @@
     "push": "pnpm with-env drizzle-kit push",
     "studio": "pnpm with-env drizzle-kit studio",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
-    "with-env": "dotenv -e ../../.env --"
+    "with-env": "dotenvx run -f ../../.env --"
   },
   "dependencies": {
     "@vercel/postgres": "^0.10.0",
-    "drizzle-orm": "^0.44.7",
+    "drizzle-orm": "^0.45.4",
     "drizzle-zod": "^0.8.3",
     "zod": "catalog:"
   },
@@ -38,7 +38,7 @@
     "@multitudes/eslint-config": "workspace:*",
     "@multitudes/prettier-config": "workspace:*",
     "@multitudes/tsconfig": "workspace:*",
-    "drizzle-kit": "^0.31.5",
+    "drizzle-kit": "^0.31.11",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:"

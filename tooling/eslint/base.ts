@@ -6,6 +6,15 @@ import turboPlugin from "eslint-plugin-turbo";
 import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 
+const turboRecommendedConfig = turboPlugin.configs?.recommended;
+if (
+  !turboRecommendedConfig ||
+  Array.isArray(turboRecommendedConfig) ||
+  !("rules" in turboRecommendedConfig)
+) {
+  throw new Error("eslint-plugin-turbo does not expose its recommended rules");
+}
+
 /**
  * All packages that leverage t3-env should use this rule
  */
@@ -53,7 +62,7 @@ export const baseConfig = defineConfig(
       ...tseslint.configs.stylisticTypeChecked,
     ],
     rules: {
-      ...turboPlugin.configs.recommended.rules,
+      ...turboRecommendedConfig.rules,
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
