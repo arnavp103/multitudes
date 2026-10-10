@@ -8,6 +8,7 @@ import { eq } from "@multitudes/db";
 import { migrateDatabase } from "@multitudes/db/migrate";
 import { user } from "@multitudes/db/schema";
 
+import { readDotenvSettings, withoutDotenvSettings } from "./dotenv";
 import { freePort, interrupted, launch, root } from "./processes";
 import { seed } from "./seed";
 
@@ -45,8 +46,11 @@ try {
   await mkdir(`${root}.local`, { recursive: true });
   await writeFile(profilePath, JSON.stringify(profile), { mode: 0o600 });
 }
+/** Credentials come only from the dotenvx-encrypted `.env`, never the shell; only `up` decrypts it. */
+const dotenv = command === "up" ? readDotenvSettings(`${root}.env`) : {};
 const env: NodeJS.ProcessEnv = {
-  ...process.env,
+  ...withoutDotenvSettings(process.env),
+  ...dotenv,
   NODE_ENV: "development",
   POSTGRES_URL: `postgres://multitudes:${profile.password}@127.0.0.1:${profile.dbPort}/${profile.project}`,
   WEBAPP_URL: `http://localhost:${profile.webPort}`,
@@ -54,11 +58,11 @@ const env: NodeJS.ProcessEnv = {
   AUTH_PRODUCTION_URL: `http://localhost:${profile.webPort}`,
   STUDIO_AUTH_PRODUCTION_URL: `http://localhost:${profile.studioPort}`,
   AUTH_SECRET: profile.secret,
-  AUTH_DISCORD_ID: process.env.AUTH_DISCORD_ID ?? "local-fixture",
-  AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET ?? "local-fixture",
+  AUTH_DISCORD_ID: dotenv.AUTH_DISCORD_ID ?? "local-fixture",
+  AUTH_DISCORD_SECRET: dotenv.AUTH_DISCORD_SECRET ?? "local-fixture",
   AGENT_CODE_VERSION: "local",
   PORT: String(profile.workerPort),
-  OTEL_SDK_DISABLED: process.env.OTEL_EXPORTER_OTLP_ENDPOINT ? "false" : "true",
+  OTEL_SDK_DISABLED: dotenv.OTEL_EXPORTER_OTLP_ENDPOINT ? "false" : "true",
 };
 const compose = [
   "compose",
@@ -177,7 +181,7 @@ if (command === "down") {
         workerArgs.push("--import", `${root}tooling/dev/src/fixture-google.ts`);
         env.GEMINI_API_KEY = "local-http-fixture";
         console.info(
-          "Using deterministic Google HTTP fixtures. Set GEMINI_API_KEY for live model calls.",
+          "Using deterministic Google HTTP fixtures. Set GEMINI_API_KEY in .env (pnpm exec dotenvx set) for live model calls.",
         );
       }
       console.info(

@@ -14,9 +14,14 @@ local database URL; it never seeds the production `POSTGRES_URL`. On Windows,
 run this workflow in WSL2 with Docker integration.
 
 The default worker uses deterministic Google HTTP fixtures and makes no model
-API calls. Set `GEMINI_API_KEY` in the invoking shell to opt into live, billable
-Gemini calls. Auth and database secrets still remain local. The fixture is loaded
-by the dev/test runner, never by production worker configuration.
+API calls. To opt into live, billable Gemini calls, store the key in the
+encrypted `.env` with `pnpm exec dotenvx set GEMINI_API_KEY "<key>" -f .env`.
+`pnpm dev:up` decrypts `.env` with the root `.env.keys` (or the OS keychain) and
+takes only `GEMINI_API_KEY`, `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, and
+`OTEL_*` from it; values exported in your shell are ignored. Without a private
+key it warns and keeps the fixtures. Auth and database secrets still remain
+local. The fixture is loaded by the dev/test runner, never by production worker
+configuration.
 
 ## Local sign-in without Discord
 
