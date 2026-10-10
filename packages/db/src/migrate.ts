@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import type pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
@@ -9,8 +10,9 @@ export async function migrateDatabase(pool: pg.Pool) {
     await client.query("SELECT pg_advisory_lock(771034, 1)");
     for (const name of ["core", "agents"]) {
       await migrate(drizzle(client), {
-        migrationsFolder: new URL(`../migrations/${name}`, import.meta.url)
-          .pathname,
+        migrationsFolder: fileURLToPath(
+          new URL(`../migrations/${name}`, import.meta.url),
+        ),
         migrationsSchema: "drizzle",
         migrationsTable:
           name === "agents" ? "agent_migrations" : "core_migrations",
