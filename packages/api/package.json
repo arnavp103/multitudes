@@ -1,5 +1,5 @@
 {
-  "name": "@acme/api",
+  "name": "@multitudes/api",
   "private": true,
   "type": "module",
   "exports": {
@@ -18,20 +18,20 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@acme/auth": "workspace:*",
-    "@acme/db": "workspace:*",
-    "@acme/validators": "workspace:*",
+    "@multitudes/auth": "workspace:*",
+    "@multitudes/db": "workspace:*",
+    "@multitudes/validators": "workspace:*",
     "@trpc/server": "catalog:",
     "superjson": "2.2.3",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@acme/eslint-config": "workspace:*",
-    "@acme/prettier-config": "workspace:*",
-    "@acme/tsconfig": "workspace:*",
+    "@multitudes/eslint-config": "workspace:*",
+    "@multitudes/prettier-config": "workspace:*",
+    "@multitudes/tsconfig": "workspace:*",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:"
   },
-  "prettier": "@acme/prettier-config"
+  "prettier": "@multitudes/prettier-config"
 }

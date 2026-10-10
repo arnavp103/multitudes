@@ -1,10 +1,9 @@
 import type { BetterAuthOptions, BetterAuthPlugin } from "better-auth";
-import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { oAuthProxy } from "better-auth/plugins";
 
-import { db } from "@acme/db/client";
+import { db } from "@multitudes/db/client";
 
 export function initAuth<
   TExtraPlugins extends BetterAuthPlugin[] = [],
@@ -27,7 +26,6 @@ export function initAuth<
       oAuthProxy({
         productionURL: options.productionUrl,
       }),
-      expo(),
       ...(options.extraPlugins ?? []),
     ],
     socialProviders: {
@@ -37,7 +35,6 @@ export function initAuth<
         redirectURI: `${options.productionUrl}/api/auth/callback/discord`,
       },
     },
-    trustedOrigins: ["expo://"],
     onAPIError: {
       onError(error, ctx) {
         console.error("BETTER AUTH API ERROR", error, ctx);

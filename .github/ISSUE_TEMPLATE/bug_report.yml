@@ -1,7 +1,6 @@
 name: 🐞 Bug Report
 description: Create a bug report to help us improve
 title: "bug: "
-labels: ["🐞❔ unconfirmed bug"]
 body:
   - type: textarea
     attributes:
@@ -9,7 +8,7 @@ body:
       description: |
         Run this command in your project root and paste the results in a code block:
         ```bash
-        npx envinfo --system --binaries
+        node --version && pnpm --version
         ```
     validations:
       required: true
