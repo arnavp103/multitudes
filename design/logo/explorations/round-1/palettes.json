@@ -1,0 +1,720 @@
+{
+  "R1-01": {
+    "name": "Triad",
+    "light": [
+      {
+        "oklch": "oklch(0.45 0.17 268)",
+        "hex": "#2e49b2"
+      },
+      {
+        "oklch": "oklch(0.62 0.142 240)",
+        "hex": "#008fd2"
+      },
+      {
+        "oklch": "oklch(0.8 0.11 195)",
+        "hex": "#57d4d4"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.72 0.145 268)",
+        "hex": "#7e9fff"
+      },
+      {
+        "oklch": "oklch(0.76 0.137 240)",
+        "hex": "#51bcff"
+      },
+      {
+        "oklch": "oklch(0.85 0.11 195)",
+        "hex": "#69e4e4"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 268)",
+      "hex": "#0c111f"
+    }
+  },
+  "R1-02": {
+    "name": "Phase",
+    "light": [
+      {
+        "oklch": "oklch(0.5 0.2 295)",
+        "hex": "#703dc6"
+      },
+      {
+        "oklch": "oklch(0.62 0.22 340)",
+        "hex": "#d53daf"
+      },
+      {
+        "oklch": "oklch(0.82 0.08 300)",
+        "hex": "#ccb9f1"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.72 0.164 295)",
+        "hex": "#ad8dff"
+      },
+      {
+        "oklch": "oklch(0.76 0.196 340)",
+        "hex": "#ff78d8"
+      },
+      {
+        "oklch": "oklch(0.86 0.08 300)",
+        "hex": "#d9c6fe"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 295)",
+      "hex": "#130f1d"
+    }
+  },
+  "R1-03": {
+    "name": "Damped",
+    "light": [
+      {
+        "oklch": "oklch(0.36 0.09 255)",
+        "hex": "#183d6b"
+      },
+      {
+        "oklch": "oklch(0.55 0.1 240)",
+        "hex": "#3179a6"
+      },
+      {
+        "oklch": "oklch(0.78 0.09 175)",
+        "hex": "#75cbb4"
+      },
+      {
+        "oklch": "oklch(0.88 0.05 85)",
+        "hex": "#e7d6b3"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.72 0.09 255)",
+        "hex": "#7ea7dc"
+      },
+      {
+        "oklch": "oklch(0.725 0.1 240)",
+        "hex": "#68afdf"
+      },
+      {
+        "oklch": "oklch(0.84 0.09 175)",
+        "hex": "#88dec7"
+      },
+      {
+        "oklch": "oklch(0.89 0.05 85)",
+        "hex": "#ead9b6"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 255)",
+      "hex": "#08121f"
+    }
+  },
+  "R1-04": {
+    "name": "Brush",
+    "light": [
+      {
+        "oklch": "oklch(0.32 0.08 270)",
+        "hex": "#232f5b"
+      },
+      {
+        "oklch": "oklch(0.64 0.19 40)",
+        "hex": "#e65719"
+      },
+      {
+        "oklch": "oklch(0.8 0.14 85)",
+        "hex": "#e7b643"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.72 0.08 270)",
+        "hex": "#91a3d8"
+      },
+      {
+        "oklch": "oklch(0.77 0.141 40)",
+        "hex": "#ff936d"
+      },
+      {
+        "oklch": "oklch(0.85 0.14 85)",
+        "hex": "#f8c655"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 270)",
+      "hex": "#0c111f"
+    }
+  },
+  "R1-05": {
+    "name": "Disc",
+    "light": [
+      {
+        "oklch": "oklch(0.42 0.13 350)",
+        "hex": "#7e2757"
+      },
+      {
+        "oklch": "oklch(0.68 0.17 25)",
+        "hex": "#ef6661"
+      },
+      {
+        "oklch": "oklch(0.82 0.12 65)",
+        "hex": "#fab36d"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.72 0.13 350)",
+        "hex": "#e181b0"
+      },
+      {
+        "oklch": "oklch(0.79 0.121 25)",
+        "hex": "#ff9b93"
+      },
+      {
+        "oklch": "oklch(0.86 0.1 65)",
+        "hex": "#ffc48a"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 350)",
+      "hex": "#1b0c13"
+    }
+  },
+  "R1-06": {
+    "name": "Arches",
+    "light": [
+      {
+        "oklch": "oklch(0.5 0.19 262)",
+        "hex": "#1e59cd"
+      },
+      {
+        "oklch": "oklch(0.62 0.14 160)",
+        "hex": "#009f68"
+      },
+      {
+        "oklch": "oklch(0.85 0.18 125)",
+        "hex": "#b3e14d"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.72 0.145 262)",
+        "hex": "#71a3ff"
+      },
+      {
+        "oklch": "oklch(0.76 0.14 160)",
+        "hex": "#4ecc92"
+      },
+      {
+        "oklch": "oklch(0.875 0.18 125)",
+        "hex": "#bbea56"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 262)",
+      "hex": "#0a111f"
+    }
+  },
+  "R1-07": {
+    "name": "Square",
+    "light": [
+      {
+        "oklch": "oklch(0.55 0.22 262)",
+        "hex": "#1e64ef"
+      },
+      {
+        "oklch": "oklch(0.8 0.16 75)",
+        "hex": "#f9ad26"
+      },
+      {
+        "oklch": "oklch(0.55 0.03 250)",
+        "hex": "#657383"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.725 0.142 262)",
+        "hex": "#74a5ff"
+      },
+      {
+        "oklch": "oklch(0.85 0.129 75)",
+        "hex": "#ffc166"
+      },
+      {
+        "oklch": "oklch(0.725 0.03 250)",
+        "hex": "#98a8b9"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 262)",
+      "hex": "#0a111f"
+    }
+  },
+  "R1-08": {
+    "name": "Braid",
+    "light": [
+      {
+        "oklch": "oklch(0.6 0.106 215)",
+        "hex": "#0090a8"
+      },
+      {
+        "oklch": "oklch(0.3 0.02 250)",
+        "hex": "#262f38"
+      },
+      {
+        "oklch": "oklch(0.85 0.1 180)",
+        "hex": "#7ee3d0"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.75 0.106 215)",
+        "hex": "#4fbfd8"
+      },
+      {
+        "oklch": "oklch(0.6 0.02 250)",
+        "hex": "#77818c"
+      },
+      {
+        "oklch": "oklch(0.875 0.1 180)",
+        "hex": "#86ecd8"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 215)",
+      "hex": "#01151a"
+    }
+  },
+  "R1-09": {
+    "name": "Fan",
+    "light": [
+      {
+        "oklch": "oklch(0.55 0.18 255)",
+        "hex": "#026fd7"
+      },
+      {
+        "oklch": "oklch(0.65 0.2 15)",
+        "hex": "#ef4b67"
+      },
+      {
+        "oklch": "oklch(0.8 0.15 75)",
+        "hex": "#f5ae39"
+      },
+      {
+        "oklch": "oklch(0.7 0.15 155)",
+        "hex": "#3bb974"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.725 0.145 255)",
+        "hex": "#63a8ff"
+      },
+      {
+        "oklch": "oklch(0.775 0.134 15)",
+        "hex": "#ff909a"
+      },
+      {
+        "oklch": "oklch(0.85 0.129 75)",
+        "hex": "#ffc166"
+      },
+      {
+        "oklch": "oklch(0.8 0.15 155)",
+        "hex": "#61da92"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 255)",
+      "hex": "#08121f"
+    }
+  },
+  "R1-10": {
+    "name": "Tile",
+    "light": [
+      {
+        "oklch": "oklch(0.45 0.2 268)",
+        "hex": "#2942c2"
+      },
+      {
+        "oklch": "oklch(0.75 0.1 275)",
+        "hex": "#9ba9ed"
+      },
+      {
+        "oklch": "oklch(0.9 0.12 95)",
+        "hex": "#f7dd7d"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.72 0.145 268)",
+        "hex": "#7e9fff"
+      },
+      {
+        "oklch": "oklch(0.825 0.087 275)",
+        "hex": "#b5c2ff"
+      },
+      {
+        "oklch": "oklch(0.9 0.12 95)",
+        "hex": "#f7dd7d"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 268)",
+      "hex": "#0c111f"
+    }
+  },
+  "R1-11": {
+    "name": "Ripple",
+    "light": [
+      {
+        "oklch": "oklch(0.5 0.085 195)",
+        "hex": "#007272"
+      },
+      {
+        "oklch": "oklch(0.72 0.11 190)",
+        "hex": "#39bab4"
+      },
+      {
+        "oklch": "oklch(0.86 0.06 80)",
+        "hex": "#e6cda5"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.72 0.085 195)",
+        "hex": "#5db6b5"
+      },
+      {
+        "oklch": "oklch(0.81 0.11 190)",
+        "hex": "#5cd8d1"
+      },
+      {
+        "oklch": "oklch(0.88 0.06 80)",
+        "hex": "#edd4ab"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 195)",
+      "hex": "#001616"
+    }
+  },
+  "R1-12": {
+    "name": "Pollen",
+    "light": [
+      {
+        "oklch": "oklch(0.45 0.1 150)",
+        "hex": "#236436"
+      },
+      {
+        "oklch": "oklch(0.62 0.13 135)",
+        "hex": "#629742"
+      },
+      {
+        "oklch": "oklch(0.85 0.17 120)",
+        "hex": "#c0dd4d"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.72 0.1 150)",
+        "hex": "#75b683"
+      },
+      {
+        "oklch": "oklch(0.76 0.13 135)",
+        "hex": "#8cc36d"
+      },
+      {
+        "oklch": "oklch(0.875 0.17 120)",
+        "hex": "#c8e656"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 150)",
+      "hex": "#07150a"
+    }
+  },
+  "R1-13": {
+    "name": "Overprint",
+    "light": [
+      {
+        "oklch": "oklch(0.58 0.22 350)",
+        "hex": "#d0268c"
+      },
+      {
+        "oklch": "oklch(0.7 0.13 225)",
+        "hex": "#12aedb"
+      },
+      {
+        "oklch": "oklch(0.88 0.16 95)",
+        "hex": "#f9d544"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.74 0.19 350)",
+        "hex": "#ff70bb"
+      },
+      {
+        "oklch": "oklch(0.8 0.13 225)",
+        "hex": "#49cffc"
+      },
+      {
+        "oklch": "oklch(0.89 0.16 95)",
+        "hex": "#fcd948"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 350)",
+      "hex": "#1b0c13"
+    }
+  },
+  "R1-14": {
+    "name": "Stairs",
+    "light": [
+      {
+        "oklch": "oklch(0.45 0.16 0)",
+        "hex": "#951d52"
+      },
+      {
+        "oklch": "oklch(0.65 0.17 10)",
+        "hex": "#e25a77"
+      },
+      {
+        "oklch": "oklch(0.85 0.07 20)",
+        "hex": "#f8bcbb"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.72 0.16 0)",
+        "hex": "#f275a0"
+      },
+      {
+        "oklch": "oklch(0.775 0.136 10)",
+        "hex": "#ff8fa2"
+      },
+      {
+        "oklch": "oklch(0.875 0.067 20)",
+        "hex": "#ffc5c4"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 0)",
+      "hex": "#1c0c11"
+    }
+  },
+  "R1-15": {
+    "name": "Waveform",
+    "light": [
+      {
+        "oklch": "oklch(0.55 0.152 150)",
+        "hex": "#00893d"
+      },
+      {
+        "oklch": "oklch(0.85 0.19 125)",
+        "hex": "#b2e240"
+      },
+      {
+        "oklch": "oklch(0.7 0.16 30)",
+        "hex": "#f17260"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.725 0.152 150)",
+        "hex": "#53c071"
+      },
+      {
+        "oklch": "oklch(0.875 0.19 125)",
+        "hex": "#baea4a"
+      },
+      {
+        "oklch": "oklch(0.8 0.115 30)",
+        "hex": "#ffa191"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 150)",
+      "hex": "#07150a"
+    }
+  },
+  "R1-16": {
+    "name": "Cursive",
+    "light": [
+      {
+        "oklch": "oklch(0.55 0.11 70)",
+        "hex": "#9a6418"
+      },
+      {
+        "oklch": "oklch(0.3 0.03 260)",
+        "hex": "#252e3d"
+      },
+      {
+        "oklch": "oklch(0.85 0.09 90)",
+        "hex": "#e5cc89"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.725 0.11 70)",
+        "hex": "#d29954"
+      },
+      {
+        "oklch": "oklch(0.6 0.03 260)",
+        "hex": "#768193"
+      },
+      {
+        "oklch": "oklch(0.875 0.09 90)",
+        "hex": "#edd490"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 70)",
+      "hex": "#1a0f03"
+    }
+  },
+  "R1-17": {
+    "name": "Strata",
+    "light": [
+      {
+        "oklch": "oklch(0.35 0.1 275)",
+        "hex": "#2d336e"
+      },
+      {
+        "oklch": "oklch(0.65 0.12 290)",
+        "hex": "#8f81d3"
+      },
+      {
+        "oklch": "oklch(0.85 0.08 50)",
+        "hex": "#f9bf9f"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.72 0.1 275)",
+        "hex": "#92a0e3"
+      },
+      {
+        "oklch": "oklch(0.775 0.12 290)",
+        "hex": "#b5a8fd"
+      },
+      {
+        "oklch": "oklch(0.875 0.074 50)",
+        "hex": "#ffc8ab"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 275)",
+      "hex": "#0e101f"
+    }
+  },
+  "R1-18": {
+    "name": "Globe",
+    "light": [
+      {
+        "oklch": "oklch(0.5 0.105 165)",
+        "hex": "#007654"
+      },
+      {
+        "oklch": "oklch(0.82 0.1 165)",
+        "hex": "#82d9b4"
+      },
+      {
+        "oklch": "oklch(0.8 0.14 85)",
+        "hex": "#e7b643"
+      }
+    ],
+    "dark": [
+      {
+        "oklch": "oklch(0.72 0.105 165)",
+        "hex": "#5dba94"
+      },
+      {
+        "oklch": "oklch(0.86 0.1 165)",
+        "hex": "#8fe6c1"
+      },
+      {
+        "oklch": "oklch(0.85 0.14 85)",
+        "hex": "#f8c655"
+      }
+    ],
+    "lightInk": {
+      "oklch": "oklch(0.99 0 0)",
+      "hex": "#fcfcfc"
+    },
+    "darkInk": {
+      "oklch": "oklch(0.18 0.03 165)",
+      "hex": "#04160e"
+    }
+  }
+}

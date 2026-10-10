@@ -1,0 +1,33 @@
+/* R1-02 Phase: accent tokens derived from the mark. */
+:root {
+  --brand-1: oklch(0.5 0.2 295); /* #703dc6 */
+  --brand-2: oklch(0.62 0.22 340); /* #d53daf */
+  --brand-3: oklch(0.82 0.08 300); /* #ccb9f1 */
+  --brand-1-foreground: oklch(0.99 0 0);
+}
+.dark {
+  --brand-1: oklch(0.72 0.164 295); /* #ad8dff */
+  --brand-2: oklch(0.76 0.196 340); /* #ff78d8 */
+  --brand-3: oklch(0.86 0.08 300); /* #d9c6fe */
+  --brand-1-foreground: oklch(0.18 0.03 295);
+}
+
+/* Mapping onto the base theme's accent slots. */
+:root,
+.dark {
+  --primary: var(--brand-1);
+  --primary-foreground: var(--brand-1-foreground);
+  --ring: var(--brand-1);
+  --accent: color-mix(in oklch, var(--brand-1) 13%, var(--background));
+  --accent-foreground: color-mix(in oklch, var(--brand-1) 35%, var(--foreground));
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-ring: var(--ring);
+  --chart-1: var(--brand-1);
+  --chart-2: var(--brand-2);
+  --chart-3: var(--brand-3);
+  --chart-4: var(--brand-4, color-mix(in oklch, var(--brand-1) 50%, var(--brand-3)));
+  --chart-5: color-mix(in oklch, var(--brand-2) 50%, var(--brand-3));
+}
