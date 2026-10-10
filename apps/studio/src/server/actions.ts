@@ -74,7 +74,9 @@ export async function saveCase(form: FormData) {
           provider: field(form, "judgeProvider"),
           modelId: field(form, "judgeModel"),
           rubric: field(form, "judgeRubric"),
-          threshold: Number(form.get("judgeThreshold") ?? 0.8),
+          threshold: field(form, "judgeThreshold").trim()
+            ? Number(field(form, "judgeThreshold"))
+            : undefined,
         }
       : undefined,
     assertions: [
