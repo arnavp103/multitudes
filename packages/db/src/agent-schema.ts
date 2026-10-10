@@ -6,6 +6,7 @@ export interface AgentConfiguration {
   modelId: string;
   systemPrompt: string;
   codeVersion: string;
+  promptVersion?: string;
 }
 
 export interface EvalAssertion {
@@ -22,6 +23,16 @@ export interface JudgeConfig {
   promptVersion: string;
 }
 
+/** Frozen tool responses: absent IDs behave like an authorized lookup miss. */
+export type TaskFixtures = Record<
+  string,
+  {
+    status: "queued" | "running" | "completed" | "failed";
+    attempts: number;
+    output: string | null;
+  }
+>;
+
 /** Every eval case is a frozen input/expectation pair, optionally sourced from a run. */
 export const EvalCase = pgTable("eval_case", (t) => ({
   id: t.uuid().primaryKey().defaultRandom(),
@@ -31,6 +42,7 @@ export const EvalCase = pgTable("eval_case", (t) => ({
   assertions: t.jsonb().$type<EvalAssertion[]>().notNull(),
   judge: t.jsonb().$type<JudgeConfig>(),
   sourceRunId: t.uuid(),
+  toolFixtures: t.jsonb().$type<TaskFixtures>().notNull().default({}),
   createdAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
 }));
 
@@ -63,6 +75,7 @@ export const AgentRun = pgTable(
     updatedAt: t.timestamp({ withTimezone: true }).defaultNow().notNull(),
   }),
   (t) => [
+    index("agent_run_status_updated_idx").on(t.status, t.updatedAt, t.id),
     index("agent_run_created_idx").on(t.createdAt),
     index("agent_run_experiment_idx").on(t.experimentId),
   ],

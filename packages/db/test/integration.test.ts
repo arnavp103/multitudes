@@ -167,6 +167,26 @@ await test("atomic enqueue, attempt fencing and checkpoint persistence", async (
     );
     await reconcileRuns();
     assert.equal((await getRun(cancelledId))?.status, "failed");
+    // A page of live old jobs must not starve a later missing job.
+    const live = await enqueueRuns(Array.from({ length: 101 }, () => value));
+    const [missing] = await enqueueRuns([value]);
+    assert.ok(missing);
+    await beginAttempt(missing, 1);
+    await queue.deleteJob(RUN_QUEUE, missing);
+    await pool.query(
+      "update agent_run set updated_at = now() - interval '2 minutes' where id = any($1::uuid[])",
+      [live],
+    );
+    await pool.query(
+      "update agent_run set updated_at = now() - interval '1 minute' where id = $1",
+      [missing],
+    );
+    await reconcileRuns();
+    assert.equal((await getRun(missing))?.status, "failed");
+    assert.match((await getRun(missing))?.error ?? "", /missing/);
+    const firstLive = live[0];
+    assert.ok(firstLive);
+    assert.equal((await getRun(firstLive))?.status, "queued");
     await assert.rejects(
       sessionStore(cancelledId, 1).write("late", new Uint8Array([1])),
       /superseded/,

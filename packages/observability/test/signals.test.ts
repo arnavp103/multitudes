@@ -25,6 +25,7 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
   });
   const spanNames: string[] = [];
   let exportedUrl: unknown;
+  let exportedModel = "";
   process.env.OTEL_RESOURCE_ATTRIBUTES =
     "service.version=runtime-override,version=runtime-override";
   const sdk = startTelemetry("signals-test", {
@@ -36,6 +37,14 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
       export(spans, done) {
         spanNames.push(...spans.map((span) => span.name));
         for (const span of spans) {
+          if (span.name === "model") {
+            exportedModel = JSON.stringify({
+              attributes: span.attributes,
+              events: span.events,
+              status: span.status,
+            });
+            assert.equal(span.attributes["gen_ai.usage.input_tokens"], 123);
+          }
           assert.equal(
             span.resource.attributes["service.version"],
             APP_VERSION,
@@ -67,6 +76,14 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
           assert.equal(trace.getActiveSpan()?.spanContext().traceId, traceId);
           logger.info(
             {
+              nested: {
+                levels: [
+                  {
+                    headers: { Authorization: "private-deep-secret" },
+                    error: new Error("private-nested-error"),
+                  },
+                ],
+              },
               apiKey: "private-test-value",
               run_id: "test-run",
               input: "private-prompt",
@@ -100,9 +117,22 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
       "private-prompt",
       "private-system",
       "private-error-body",
+      "private-deep-secret",
+      "private-nested-error",
     ]) {
       assert.ok(!JSON.stringify(records).includes(secret));
     }
+    const model = trace.getTracer("strands-fixture").startSpan("model", {
+      attributes: {
+        system_prompt: "private-system-prompt",
+        "gen_ai.input.messages": "private-messages",
+        "gen_ai.tool.call.arguments": "private-arguments",
+        "gen_ai.usage.input_tokens": 123,
+      },
+    });
+    model.addEvent("gen_ai.user.message", { content: "private-content" });
+    model.recordException(new Error("private-provider-error"));
+    model.end();
     const request = trace.getTracer("next-test").startSpan("GET /tasks", {
       attributes: {
         "next.span_type": "BaseServer.handleRequest",
@@ -140,6 +170,12 @@ await test("correlates traces, exports redacted Pino logs and collects metrics",
   } finally {
     await sdk.shutdown();
   }
-  assert.deepEqual(spanNames.sort(), ["GET /tasks", "enqueue", "worker"]);
+  assert.deepEqual(spanNames.sort(), [
+    "GET /tasks",
+    "enqueue",
+    "model",
+    "worker",
+  ]);
+  assert.ok(exportedModel && !exportedModel.includes("private-"));
   assert.equal(exportedUrl, "https://example.com/tasks");
 });

@@ -8,6 +8,7 @@ import type {
   AgentConfiguration,
   EvalAssertion,
   JudgeConfig,
+  TaskFixtures,
 } from "./agent-schema";
 import {
   AgentRun,
@@ -133,6 +134,7 @@ export async function createCase(value: {
   input: string;
   assertions: EvalAssertion[];
   sourceRunId?: string;
+  toolFixtures?: TaskFixtures;
   judge?: JudgeConfig;
 }) {
   const [result] = await db.insert(EvalCase).values(value).returning();
@@ -300,37 +302,52 @@ export function sessionStore(runId: string, attempt: number) {
 
 /** Reconcile hard-killed final attempts, which cannot update their own run status. */
 export async function reconcileRuns() {
-  const candidates = await db
-    .select({ id: AgentRun.id, attempts: AgentRun.attempts })
-    .from(AgentRun)
-    .where(
-      and(
-        sql`${AgentRun.status} in ('queued', 'running')`,
-        sql`${AgentRun.updatedAt} < now() - interval '30 seconds'`,
-      ),
-    )
-    .orderBy(asc(AgentRun.updatedAt))
-    .limit(100);
-  if (!candidates.length) return;
+  const cutoff = new Date(Date.now() - 30_000);
+  let cursor: { updatedAt: string; id: string } | undefined;
   const queue = await getQueue();
-  for (const run of candidates) {
-    const job = await queue.getJobById(RUN_QUEUE, run.id);
-    if (job && ["failed", "cancelled", "completed"].includes(job.state)) {
+  while (true) {
+    const candidates: { id: string; attempts: number; updatedAt: string }[] =
       await db
-        .update(AgentRun)
-        .set({
-          status: "failed",
-          error: `Queue reached ${job.state} without a committed run result`,
-          updatedAt: new Date(),
+        .select({
+          id: AgentRun.id,
+          attempts: AgentRun.attempts,
+          // Preserve PostgreSQL microseconds for both pagination and the update fence.
+          updatedAt: sql<string>`${AgentRun.updatedAt}::text`,
         })
+        .from(AgentRun)
         .where(
           and(
-            eq(AgentRun.id, run.id),
-            eq(AgentRun.attempts, run.attempts),
             sql`${AgentRun.status} in ('queued', 'running')`,
+            sql`${AgentRun.updatedAt} < ${cutoff}`,
+            cursor
+              ? sql`(${AgentRun.updatedAt}, ${AgentRun.id}) > (${cursor.updatedAt}::timestamptz, ${cursor.id}::uuid)`
+              : undefined,
           ),
-        );
+        )
+        .orderBy(asc(AgentRun.updatedAt), asc(AgentRun.id))
+        .limit(100);
+    for (const run of candidates) {
+      const job = await queue.getJobById(RUN_QUEUE, run.id);
+      if (!job || ["failed", "cancelled", "completed"].includes(job.state)) {
+        await db
+          .update(AgentRun)
+          .set({
+            status: "failed",
+            error: `Queue job ${job?.state ?? "missing"} without a committed run result`,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(AgentRun.id, run.id),
+              eq(AgentRun.attempts, run.attempts),
+              sql`${AgentRun.updatedAt} = ${run.updatedAt}::timestamptz`,
+              sql`${AgentRun.status} in ('queued', 'running')`,
+            ),
+          );
+      }
     }
+    if (candidates.length < 100) return;
+    cursor = candidates.at(-1);
   }
 }
 

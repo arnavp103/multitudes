@@ -1,0 +1,2 @@
+ALTER TABLE "eval_case" ADD COLUMN "tool_fixtures" jsonb DEFAULT '{}'::jsonb NOT NULL;--> statement-breakpoint
+CREATE INDEX "agent_run_status_updated_idx" ON "agent_run" USING btree ("status","updated_at","id");

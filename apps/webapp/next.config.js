@@ -10,6 +10,7 @@ const config = {
   /** Enables hot reloading for local packages without a build step */
   experimental: { useTypeScriptCli: true },
   transpilePackages: [
+    "@multitudes/ai",
     "@multitudes/api",
     "@multitudes/agent",
     "@multitudes/observability",

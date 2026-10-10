@@ -3,11 +3,12 @@ import { z } from "zod/v4";
 
 import type { AgentConfiguration, EvalAssertion } from "@multitudes/db/schema";
 import { configurationSchema, inputSchema } from "@multitudes/agent";
+import { taskFixturesSchema } from "@multitudes/db/agent-service";
 import { createCase, enqueueRuns, getCase, getRun } from "@multitudes/db/runs";
 import { captureTraceContext } from "@multitudes/observability/context";
 import { createLogger } from "@multitudes/observability/logger";
 
-import { JUDGE_PROMPT_VERSION } from "./prompts/judge";
+import { JUDGE_PROMPT_VERSION, JUDGE_PROMPTS } from "./prompts/judge";
 
 const logger = createLogger("multitudes-evals");
 
@@ -16,7 +17,13 @@ export const judgeSchema = z.object({
   modelId: z.string().min(1).max(256),
   rubric: z.string().min(1).max(8000),
   threshold: z.number().min(0).max(1).default(0.8),
-  promptVersion: z.literal(JUDGE_PROMPT_VERSION).default(JUDGE_PROMPT_VERSION),
+  promptVersion: z
+    .string()
+    .refine(
+      (version) => Object.hasOwn(JUDGE_PROMPTS, version),
+      "Unknown judge prompt version",
+    )
+    .default(JUDGE_PROMPT_VERSION),
 });
 
 export const caseSchema = z
@@ -33,6 +40,7 @@ export const caseSchema = z
       )
       .max(50),
     sourceRunId: z.uuid().optional(),
+    toolFixtures: taskFixturesSchema.default({}),
     judge: judgeSchema.optional(),
   })
   .refine((value) => value.assertions.length > 0 || !!value.judge, {
@@ -99,6 +107,7 @@ export async function launchExperiment(input: {
           input: item.input,
           configuration,
           mode: "eval" as const,
+          ownerId: input.ownerId,
           traceContext,
           experimentId: id,
           caseId: item.id,

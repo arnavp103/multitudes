@@ -2,6 +2,7 @@
 export default {
   experimental: { useTypeScriptCli: true },
   transpilePackages: [
+    "@multitudes/ai",
     "@multitudes/auth",
     "@multitudes/ui",
     "@multitudes/db",

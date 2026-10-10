@@ -338,9 +338,6 @@ importers:
       '@multitudes/ai':
         specifier: workspace:*
         version: link:../ai
-      '@multitudes/api':
-        specifier: workspace:*
-        version: link:../api
       '@multitudes/db':
         specifier: workspace:*
         version: link:../db
@@ -439,9 +436,6 @@ importers:
       '@multitudes/observability':
         specifier: workspace:*
         version: link:../observability
-      '@multitudes/validators':
-        specifier: workspace:*
-        version: link:../validators
       '@trpc/server':
         specifier: 'catalog:'
         version: 11.19.0(typescript@7.0.2)

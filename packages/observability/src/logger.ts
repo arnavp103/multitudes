@@ -51,7 +51,14 @@ export function createLogger(
     {
       level,
       base: { service, version: APP_VERSION },
-      serializers: { err: safeError },
+      serializers: {
+        err: (error: unknown) =>
+          error instanceof Error ? safeError(error) : error,
+      },
+      formatters: {
+        log: (record) => redactRecord(record),
+        bindings: (record) => redactRecord(record),
+      },
       redact: {
         paths: [
           "authorization",
@@ -106,4 +113,47 @@ export function safeError(error: unknown) {
       .filter((line) => /^\s+at /.test(line))
       .join("\n"),
   };
+}
+
+const privateKeys = new Set([
+  "authorization",
+  "cookie",
+  "setcookie",
+  "password",
+  "apikey",
+  "token",
+  "secret",
+  "input",
+  "output",
+  "systemprompt",
+  "messages",
+  "accesstoken",
+  "refreshtoken",
+]);
+
+/** Redact nested arrays/objects before both stdout and OTLP, without mutating caller data. */
+export function redactRecord(
+  record: Record<string, unknown>,
+): Record<string, unknown> {
+  const seen = new WeakSet<object>();
+  const visit = (value: unknown): unknown => {
+    if (value instanceof Error) return safeError(value);
+    if (value === null || typeof value !== "object") return value;
+    if (value instanceof Date) return value.toISOString();
+    if (seen.has(value)) return "[Circular]";
+    seen.add(value);
+    const result: unknown = Array.isArray(value)
+      ? value.map(visit)
+      : Object.fromEntries(
+          Object.entries(value).map(([key, nested]) => [
+            key,
+            privateKeys.has(key.toLowerCase().replace(/[^a-z]/g, ""))
+              ? "[REDACTED]"
+              : visit(nested),
+          ]),
+        );
+    seen.delete(value);
+    return result;
+  };
+  return visit(record) as Record<string, unknown>;
 }

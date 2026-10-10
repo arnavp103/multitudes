@@ -1,6 +1,10 @@
 import { z } from "zod/v4";
 
-import { getAgentCapabilities, getTaskStatus } from "../agent-service";
+import {
+  getAgentCapabilities,
+  getTaskStatus,
+} from "@multitudes/db/agent-service";
+
 import { protectedProcedure } from "../trpc";
 
 /** HTTP callers and agent tools share the same service authorization and result shape. */

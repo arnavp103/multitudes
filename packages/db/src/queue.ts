@@ -9,20 +9,26 @@ const globalQueue = globalThis as typeof globalThis & {
 };
 
 /** Share one initialized queue per process, including Next.js development reloads. */
-export function getQueue() {
+export function getQueue(role: "producer" | "worker" = "producer") {
   globalQueue.multitudesQueue ??= (async () => {
-    const queue = new PgBoss({ connectionString: process.env.POSTGRES_URL });
+    const queue = new PgBoss({
+      connectionString: process.env.POSTGRES_URL,
+      supervise: role === "worker",
+      schedule: false,
+    });
     const logger = createLogger("agent-queue");
     queue.on("error", (err) => logger.error({ err }, "Queue error"));
     try {
       await queue.start();
-      await queue.createQueue(RUN_QUEUE, {
+      const policy = {
         retryLimit: RETRY_LIMIT,
         retryDelay: 5,
         retryBackoff: true,
         expireInSeconds: 300,
         heartbeatSeconds: 30,
-      });
+      };
+      await queue.createQueue(RUN_QUEUE, policy);
+      await queue.updateQueue(RUN_QUEUE, policy);
       return queue;
     } catch (error) {
       await queue.stop();

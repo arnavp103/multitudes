@@ -1,10 +1,11 @@
 import { Agent } from "@strands-agents/sdk";
 import { z } from "zod/v4";
 
+import type { UsageStore } from "@multitudes/ai";
 import type { JudgeConfig } from "@multitudes/db/schema";
 import { createModel } from "@multitudes/ai";
 
-import { JUDGE_PROMPT, JUDGE_PROMPT_VERSION } from "./prompts/judge";
+import { JUDGE_PROMPTS } from "./prompts/judge";
 
 const verdictSchema = z
   .object({
@@ -30,16 +31,28 @@ export async function judgeOutput(options: {
   output: string;
   config: JudgeConfig;
   signal: AbortSignal;
+  usageStore?: UsageStore;
 }) {
-  if (options.config.promptVersion !== JUDGE_PROMPT_VERSION)
-    throw new Error("Judge prompt version does not match this worker");
+  const prompt = JUDGE_PROMPTS[options.config.promptVersion];
+  if (!prompt) throw new Error("Unknown judge prompt version");
   const agent = new Agent({
-    model: createModel(options.config, {
-      runId: options.runId,
-      attempt: options.attempt,
-      purpose: "judge",
-    }),
-    systemPrompt: JUDGE_PROMPT,
+    model: createModel(
+      options.config,
+      {
+        runId: options.runId,
+        attempt: options.attempt,
+        purpose: "judge",
+      },
+      options.usageStore,
+      {
+        temperature: 0,
+        responseMimeType: "application/json",
+        responseJsonSchema: z.toJSONSchema(verdictSchema),
+      },
+    ),
+    systemPrompt: prompt,
+    retryStrategy: null,
+    sandbox: false,
     tools: [],
     printer: false,
   });

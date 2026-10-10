@@ -325,6 +325,11 @@ export const MessageResponse = memo(
         className,
       )}
       {...props}
+      disallowedElements={["img"]}
+      skipHtml
+      urlTransform={(url, key) =>
+        key === "href" && /^https:\/\//i.test(url) ? url : undefined
+      }
     />
   ),
   (prevProps, nextProps) => prevProps.children === nextProps.children,

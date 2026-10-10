@@ -89,11 +89,13 @@ review and regression testing; recording them alone is not self-learning.
 - SIGTERM/SIGINT abort active model calls, drain the queue, close DB connections,
   then flush telemetry. A hard kill leaves work for queue recovery.
 - A periodic reconciler marks runs failed when the queue has exhausted retries or
-  cancelled work after a hard crash. Run status therefore converges even when the
-  last worker cannot record its own failure.
+  cancelled work after a hard crash, including jobs removed by queue retention.
+  Keyset pagination prevents live old jobs from starving later candidates.
 - Each agent invocation has a 180-second deadline, ten-turn budget and
   50,000-token soft cap. Judges have a separate 60-second deadline. Providers cap
-  generated output at 4,096 tokens per call.
+  generated output at 4,096 tokens per call via Google `params.maxOutputTokens`.
+  Agent/judge transient retries are disabled; pg-boss owns job retries. Budgets
+  reset per invocation and are not yet cross-attempt spending limits.
 
 ## Observability
 
@@ -117,11 +119,18 @@ Replace it with your chosen backend's exporter for searchable telemetry. Set
 deployed by this PR. With no collector running, telemetry export is best effort;
 agent state is independently persisted in Postgres.
 
-Durable `run_event` rows capture full messages and semantic model/tool boundaries,
-not token-by-token logs. Treat these and SDK trace content as sensitive application
-data. Pino field redaction does not scrub arbitrary text inside prompts or native
-Strands trace attributes; configure retention, restricted access, and any required
-content filtering before sending production data to an external telemetry service.
+Durable `run_event` rows capture full messages and semantic model/tool boundaries
+in app-owned `v: 1` envelopes, not token-by-token logs. Treat the ledger and session
+checkpoints as sensitive application data with restricted access and retention.
+New configurations freeze `promptVersion`; custom prompts receive a SHA-256 label.
+Eval cases carry immutable task fixtures so tools never query production task data.
+
+Pino recursively redacts private structured fields and error messages/causes in
+both stdout and OTLP records. Keep log messages static. Before exporting spans,
+the content privacy processor removes Strands model/tool content from attributes
+and events. `OTEL_CAPTURE_MODEL_CONTENT=true` explicitly opts into sensitive model
+content export for a controlled environment; exception bodies remain stripped.
+See `review-followup.md` for the precise fixes and remaining review findings.
 
 ## Validation
 

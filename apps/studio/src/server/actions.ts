@@ -80,6 +80,9 @@ export async function saveCase(form: FormData) {
             : undefined,
         }
       : undefined,
+    toolFixtures: JSON.parse(
+      field(form, "toolFixtures").trim() || "{}",
+    ) as unknown,
     assertions: [
       ...lines("contains").map((value) => ({ kind: "contains", value })),
       ...lines("notContains").map((value) => ({ kind: "not_contains", value })),

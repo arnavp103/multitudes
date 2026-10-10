@@ -7,6 +7,7 @@ import {
   createAgent,
   JUDGE_TIMEOUT_MS,
 } from "@multitudes/agent";
+import { createFixtureServices } from "@multitudes/db/agent-service";
 import { pool } from "@multitudes/db/client";
 import { getQueue, RETRY_LIMIT, RUN_QUEUE } from "@multitudes/db/queue";
 import {
@@ -34,7 +35,7 @@ export async function startWorker() {
   const completed = meter.createCounter("agent.runs.completed");
   const duration = meter.createHistogram("agent.run.duration", { unit: "s" });
   const shutdown = new AbortController();
-  const queue = await getQueue();
+  const queue = await getQueue("worker");
   await queue.work<{ runId: string }>(
     RUN_QUEUE,
     { batchSize: 1, localConcurrency: env.WORKER_CONCURRENCY },
@@ -56,7 +57,7 @@ export async function startWorker() {
         },
         async () => {
           const record = (type: string, payload: Record<string, unknown>) =>
-            appendRunEvent(run.id, attempt, type, payload);
+            appendRunEvent(run.id, attempt, type, { ...payload, v: 1 });
           try {
             if (run.configuration.codeVersion !== env.AGENT_CODE_VERSION)
               throw new Error(
@@ -65,6 +66,9 @@ export async function startWorker() {
             await record("attempt.started", {
               codeVersion: env.AGENT_CODE_VERSION,
             });
+            const test = run.caseId ? await getCase(run.caseId) : undefined;
+            if (run.mode === "eval" && !test)
+              throw new Error("Eval case missing");
             const storage = sessionStore(run.id, attempt);
             const receipt = await storage.read("result.json");
             let output: string;
@@ -74,7 +78,14 @@ export async function startWorker() {
               const agent = createAgent({
                 runId: run.id,
                 attempt,
-                ownerId: run.ownerId ?? undefined,
+                ownerId:
+                  run.mode === "eval"
+                    ? "eval-fixture"
+                    : (run.ownerId ?? undefined),
+                toolServices:
+                  run.mode === "eval" && test
+                    ? createFixtureServices(test.toolFixtures)
+                    : undefined,
                 configuration: run.configuration,
                 storage,
                 record,
@@ -116,8 +127,6 @@ export async function startWorker() {
                 await agent.shutdown();
               }
             }
-            const test = run.caseId ? await getCase(run.caseId) : undefined;
-            if (run.caseId && !test) throw new Error("Eval case missing");
             let score;
             if (test) {
               const assertions = test.assertions.length

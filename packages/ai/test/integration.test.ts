@@ -30,12 +30,22 @@ await test("Gemini AI Studio preserves cached and thinking token usage", async (
       cachedContentTokenCount: 20,
     },
   };
-  const fetchMock = t.mock.method(globalThis, "fetch", () =>
-    Promise.resolve(
-      new Response(`data: ${JSON.stringify(payload)}\n\n`, {
-        headers: { "content-type": "text/event-stream" },
-      }),
-    ),
+  let requestBody: Record<string, unknown> | undefined;
+  const fetchMock = t.mock.method(
+    globalThis,
+    "fetch",
+    async (
+      input: Parameters<typeof globalThis.fetch>[0],
+      init?: RequestInit,
+    ) => {
+      const request = new Request(input, init);
+      requestBody = (await request.json()) as Record<string, unknown>;
+      return Promise.resolve(
+        new Response(`data: ${JSON.stringify(payload)}\n\n`, {
+          headers: { "content-type": "text/event-stream" },
+        }),
+      );
+    },
   );
   let recorded: CallFinish | undefined;
   const model = createModel(
@@ -55,6 +65,11 @@ await test("Gemini AI Studio preserves cached and thinking token usage", async (
     ]),
   );
   assert.equal(fetchMock.mock.callCount(), 1);
+  assert.equal(
+    (requestBody?.generationConfig as { maxOutputTokens?: number })
+      .maxOutputTokens,
+    4096,
+  );
   assert.ok(recorded?.usage);
   assert.equal(recorded.status, "completed");
   assert.equal(recorded.usage.inputTokens, 100);

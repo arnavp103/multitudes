@@ -19,6 +19,7 @@ import { NodeSDK } from "@opentelemetry/sdk-node";
 import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
 
 import { APP_VERSION, GIT_SHA } from "./build-info.generated";
+import { contentPrivacyProcessor } from "./privacy";
 import { requestObserver } from "./requests";
 
 let sdk: NodeSDK | undefined;
@@ -36,10 +37,6 @@ export function startTelemetry(
   });
   sdk = new NodeSDK({
     serviceName,
-    spanProcessors: [
-      requestObserver(serviceName),
-      new BatchSpanProcessor(new OTLPTraceExporter()),
-    ],
     instrumentations: [
       new HttpInstrumentation(),
       new UndiciInstrumentation(),
@@ -67,14 +64,17 @@ export function startTelemetry(
       ]),
       { detect: () => buildResource },
     ],
-    ...(overrides.traceExporter && !overrides.spanProcessors
-      ? {
-          spanProcessors: [
-            requestObserver(serviceName),
-            new BatchSpanProcessor(overrides.traceExporter),
-          ],
-        }
-      : {}),
+    spanProcessors: [
+      contentPrivacyProcessor(
+        process.env.OTEL_CAPTURE_MODEL_CONTENT === "true",
+      ),
+      requestObserver(serviceName),
+      ...(overrides.spanProcessors ?? [
+        new BatchSpanProcessor(
+          overrides.traceExporter ?? new OTLPTraceExporter(),
+        ),
+      ]),
+    ],
   });
   sdk.start();
   return sdk;
