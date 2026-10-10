@@ -20,7 +20,13 @@ const config = {
     "@multitudes/validators",
   ],
 
-  serverExternalPackages: ["pg", "pg-boss", "pino", "@strands-agents/sdk"],
+  serverExternalPackages: [
+    "pg",
+    "pg-boss",
+    "pino",
+    "pino-pretty",
+    "@strands-agents/sdk",
+  ],
 };
 
 export default config;

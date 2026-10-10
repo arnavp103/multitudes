@@ -10,5 +10,11 @@ export default {
     "@multitudes/evals",
     "@multitudes/observability",
   ],
-  serverExternalPackages: ["pg", "pg-boss", "pino", "@strands-agents/sdk"],
+  serverExternalPackages: [
+    "pg",
+    "pg-boss",
+    "pino",
+    "pino-pretty",
+    "@strands-agents/sdk",
+  ],
 };

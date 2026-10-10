@@ -184,12 +184,17 @@ Use `createLogger("multitudes-<service>")` from `@multitudes/observability/logge
 for Node code. `LOG_LEVEL` is honored centrally. Child bindings carry run IDs and
 attempt numbers; the active OTel trace/span is added automatically. Pino writes
 JSON to stdout and forwards the same redacted records to the OTel log provider.
+When `NODE_ENV=development` (as under `pnpm dev:up`), stdout is pretty-printed
+in-process with `pino-pretty` instead; the OTel export still receives JSON, and
+production/test output is unchanged.
 Next.js request errors, auth failures, tRPC requests, DB/queue failures, submissions,
 worker lifecycle/model calls, and eval authoring/launching have structured logs.
 
 Use `reportClientError(component, error)` from the separate `/browser` entrypoint
 for UI boundaries. It uses Pino's browser implementation and logs only error type
-and the Next.js digest to the browser console. It does not ship Node exporters or
+and the Next.js digest to the browser console. Development builds print a styled
+`LEVEL time message` line with the fields as an inspectable object; other builds
+log Pino's structured record objects. It does not ship Node exporters or
 transmit client logs. Pure validators and UI primitives do not log every render or
 keystroke. Prompt/response/trajectory content belongs in the protected run store,
 not application logs. Never log request headers, cookies, forms, or provider bodies.
