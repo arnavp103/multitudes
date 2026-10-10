@@ -1,0 +1,33 @@
+/* R1-11 Ripple: accent tokens derived from the mark. */
+:root {
+  --brand-1: oklch(0.5 0.085 195); /* #007272 */
+  --brand-2: oklch(0.72 0.11 190); /* #39bab4 */
+  --brand-3: oklch(0.86 0.06 80); /* #e6cda5 */
+  --brand-1-foreground: oklch(0.99 0 0);
+}
+.dark {
+  --brand-1: oklch(0.72 0.085 195); /* #5db6b5 */
+  --brand-2: oklch(0.81 0.11 190); /* #5cd8d1 */
+  --brand-3: oklch(0.88 0.06 80); /* #edd4ab */
+  --brand-1-foreground: oklch(0.18 0.03 195);
+}
+
+/* Mapping onto the base theme's accent slots. */
+:root,
+.dark {
+  --primary: var(--brand-1);
+  --primary-foreground: var(--brand-1-foreground);
+  --ring: var(--brand-1);
+  --accent: color-mix(in oklch, var(--brand-1) 13%, var(--background));
+  --accent-foreground: color-mix(in oklch, var(--brand-1) 35%, var(--foreground));
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-ring: var(--ring);
+  --chart-1: var(--brand-1);
+  --chart-2: var(--brand-2);
+  --chart-3: var(--brand-3);
+  --chart-4: var(--brand-4, color-mix(in oklch, var(--brand-1) 50%, var(--brand-3)));
+  --chart-5: color-mix(in oklch, var(--brand-2) 50%, var(--brand-3));
+}
