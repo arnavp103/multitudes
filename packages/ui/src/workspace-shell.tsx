@@ -7,13 +7,13 @@ import {
   LayersIcon,
   MessageSquareIcon,
   PanelLeftIcon,
-  ShapesIcon,
 } from "lucide-react";
 
 import { cn } from "@multitudes/ui";
 
 import { Badge } from "./badge";
 import { Button } from "./button";
+import { Logo } from "./logo";
 import { Separator } from "./separator";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./sheet";
 import { ThemeToggle } from "./theme";
@@ -45,14 +45,8 @@ export function WorkspaceShell({
 }) {
   const navigation = (
     <>
-      <a
-        href="/"
-        className="flex items-center gap-3 px-3 py-6 text-base font-semibold tracking-tight"
-      >
-        <span className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg">
-          <ShapesIcon className="size-5" />
-        </span>
-        Multitudes
+      <a href="/" aria-label="Multitudes home" className="flex px-3 py-6">
+        <Logo />
       </a>
       <div className="text-muted-foreground mt-6 mb-3 px-3 text-[10px] font-medium tracking-[0.18em] uppercase">
         {studio ? "Development" : "Workspace"}
