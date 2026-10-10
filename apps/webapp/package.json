@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm with-env next build",
+    "build": "node ../../tooling/version.mjs pnpm with-env next build",
     "clean": "git clean -xdf .cache .next .turbo node_modules",
-    "dev": "pnpm with-env next dev",
+    "dev": "node ../../tooling/version.mjs pnpm with-env next dev",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint --flag unstable_native_nodejs_ts_config",
     "start": "pnpm with-env next start",
@@ -13,9 +13,11 @@
     "with-env": "dotenvx run -f ../../.env --"
   },
   "dependencies": {
+    "@multitudes/agent": "workspace:*",
     "@multitudes/api": "workspace:*",
     "@multitudes/auth": "workspace:*",
     "@multitudes/db": "workspace:*",
+    "@multitudes/observability": "workspace:*",
     "@multitudes/ui": "workspace:*",
     "@multitudes/validators": "workspace:*",
     "@t3-oss/env-nextjs": "^0.13.11",

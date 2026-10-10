@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 
 import { cn } from "@multitudes/ui";
-import { ThemeProvider, ThemeToggle } from "@multitudes/ui/theme";
+import { ThemeProvider } from "@multitudes/ui/theme";
 import { Toaster } from "@multitudes/ui/toast";
 
 import { env } from "~/env";
@@ -19,13 +18,13 @@ const appUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
-  title: "Web App",
-  description: "A full-stack web application built with Next.js.",
+  title: "Multitudes",
+  description: "Your agent workspace.",
   openGraph: {
-    title: "Web App",
-    description: "A full-stack web application built with Next.js.",
+    title: "Multitudes",
+    description: "Your agent workspace.",
     url: appUrl,
-    siteName: "Web App",
+    siteName: "Multitudes",
   },
   twitter: {
     card: "summary_large_image",
@@ -39,30 +38,16 @@ export const viewport: Viewport = {
   ],
 };
 
-const geistSans = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
-});
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
-});
-
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
           "bg-background text-foreground min-h-screen font-sans antialiased",
-          geistSans.variable,
-          geistMono.variable,
         )}
       >
         <ThemeProvider>
           <TRPCReactProvider>{props.children}</TRPCReactProvider>
-          <div className="absolute right-4 bottom-4">
-            <ThemeToggle />
-          </div>
           <Toaster />
         </ThemeProvider>
       </body>

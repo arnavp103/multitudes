@@ -1,0 +1,123 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@multitudes/tailwind-config/theme";
+
+@source "../../../../packages/ui/src/**/*.{ts,tsx}";
+
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(.light, .light *));
+@custom-variant auto (&:where(.auto, .auto *));
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .studio-content {
+    @apply mx-auto w-full max-w-[1500px] px-5 py-8 md:px-10 md:py-10;
+  }
+  .studio-content h1,
+  .login h1 {
+    @apply mt-2 mb-3 text-3xl font-semibold tracking-tight md:text-4xl;
+  }
+  .studio-content h2 {
+    @apply mb-4 text-base font-semibold;
+  }
+  .eyebrow {
+    @apply text-primary text-[10px] font-medium tracking-[0.2em] uppercase;
+  }
+  .muted,
+  time {
+    @apply text-muted-foreground text-sm;
+  }
+  .workspace {
+    @apply mt-8 grid items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)];
+  }
+  .panel {
+    @apply bg-card text-card-foreground mb-6 overflow-auto rounded-xl border p-6 shadow-sm;
+  }
+  .narrow {
+    @apply max-w-3xl;
+  }
+  .section-title,
+  .actions {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+  .section-title {
+    @apply mb-6;
+  }
+  .section-title h2 {
+    @apply mb-0;
+  }
+  .studio-content form,
+  .login form {
+    @apply grid gap-5;
+  }
+  .studio-content label {
+    @apply grid gap-2 text-sm font-medium;
+  }
+  .studio-content select {
+    @apply bg-background h-10 w-full rounded-md border px-3 text-sm;
+  }
+  .columns {
+    @apply grid gap-4 sm:grid-cols-2;
+  }
+  .studio-content pre {
+    @apply max-w-full overflow-auto font-mono text-xs leading-6 break-words whitespace-pre-wrap;
+  }
+  .studio-content td pre {
+    @apply max-h-60 max-w-md;
+  }
+  .studio-content a:not([data-slot="button"]) {
+    @apply hover:text-primary;
+  }
+  .status {
+    @apply inline-flex items-center rounded-full border px-2 py-1 text-[11px] font-medium;
+  }
+  .completed {
+    @apply text-primary;
+  }
+  .failed,
+  .error {
+    @apply text-destructive;
+  }
+  .queued,
+  .running {
+    @apply text-amber-600 dark:text-amber-300;
+  }
+  .facts {
+    @apply text-muted-foreground my-6 flex flex-wrap items-center gap-5 text-sm;
+  }
+  .event {
+    @apply border-t py-4;
+  }
+  .studio-content summary {
+    @apply cursor-pointer text-sm;
+  }
+  .studio-content summary time {
+    @apply ml-5;
+  }
+  .empty {
+    @apply text-muted-foreground px-3 py-12 text-center text-sm;
+  }
+  fieldset {
+    @apply max-h-64 overflow-auto rounded-md border p-3;
+  }
+  legend {
+    @apply px-2 text-xs;
+  }
+  .studio-content label.check {
+    @apply my-3 flex items-center gap-3;
+  }
+  .studio-content form.comparison {
+    @apply my-6 flex items-end gap-3;
+  }
+  .login {
+    @apply mx-auto max-w-lg px-6 pt-[18vh];
+  }
+}

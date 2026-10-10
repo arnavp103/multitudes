@@ -17,6 +17,9 @@ export const env = createEnv({
    */
   server: {
     POSTGRES_URL: z.url(),
+    AGENT_PROVIDER: z.literal("gemini").default("gemini"),
+    AGENT_MODEL_ID: z.string().default("gemini-3.8-flash"),
+    AGENT_CODE_VERSION: z.string().default("local"),
   },
 
   /**
@@ -37,3 +40,8 @@ export const env = createEnv({
   skipValidation:
     !!process.env.CI || process.env.npm_lifecycle_event === "lint",
 });
+
+/** Next initializes telemetry only in the Node server runtime. */
+export function isNodeRuntime() {
+  return process.env.NEXT_RUNTIME === "nodejs";
+}

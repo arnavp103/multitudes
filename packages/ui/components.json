@@ -5,13 +5,18 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "unused.css",
+    "css": "../../tooling/tailwind/theme.css",
     "baseColor": "zinc",
     "cssVariables": true
   },
   "aliases": {
     "utils": "@multitudes/ui",
-    "components": "src/",
-    "ui": "src/"
+    "components": "@multitudes/ui",
+    "ui": "@multitudes/ui",
+    "hooks": "@multitudes/ui/hooks",
+    "lib": "@multitudes/ui/lib"
+  },
+  "registries": {
+    "@ai-elements": "https://registry.ai-sdk.dev/{name}.json"
   }
 }

@@ -15,8 +15,15 @@ packages, and workspace tooling.
 ```text
 .
 ├── apps/
-│   └── webapp/
+│   ├── webapp/
+│   ├── studio/
+│   └── backend/
 ├── packages/
+│   ├── ai/
+│   ├── email/
+│   ├── agent/
+│   ├── evals/
+│   ├── observability/
 │   ├── api/
 │   ├── auth/
 │   ├── db/

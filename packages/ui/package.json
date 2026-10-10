@@ -11,7 +11,9 @@
     "./label": "./src/label.tsx",
     "./separator": "./src/separator.tsx",
     "./theme": "./src/theme.tsx",
-    "./toast": "./src/toast.tsx"
+    "./toast": "./src/toast.tsx",
+    "./*": "./src/*.tsx",
+    "./ai-elements/*": "./src/ai-elements/*.tsx"
   },
   "license": "MIT",
   "scripts": {
@@ -19,24 +21,41 @@
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint --flag unstable_native_nodejs_ts_config",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
-    "ui-add": "pnpm dlx shadcn@latest add && prettier src --write --list-different"
+    "ui-add": "pnpm dlx shadcn@latest add && prettier src --write --list-different",
+    "test:unit": "vitest run"
   },
   "dependencies": {
+    "@multitudes/observability": "workspace:*",
     "@radix-ui/react-icons": "^1.3.2",
+    "@radix-ui/react-use-controllable-state": "^1.2.6",
+    "ai": "^7.0.137",
     "class-variance-authority": "^0.7.1",
+    "cmdk": "^1.1.1",
+    "lucide-react": "^1.55.0",
+    "motion": "^12.23.24",
+    "next-themes": "^0.4.6",
     "radix-ui": "^1.7.0",
+    "shiki": "^3.13.0",
     "sonner": "^2.0.8",
-    "tailwind-merge": "^3.7.0"
+    "streamdown": "^2.7.0",
+    "tailwind-merge": "^3.7.0",
+    "use-stick-to-bottom": "^1.1.6"
   },
   "devDependencies": {
     "@multitudes/eslint-config": "workspace:*",
     "@multitudes/prettier-config": "workspace:*",
     "@multitudes/tsconfig": "workspace:*",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19",
     "eslint": "catalog:",
+    "jsdom": "^26.1.0",
     "prettier": "catalog:",
     "react": "catalog:react19",
+    "react-dom": "catalog:react19",
     "typescript": "catalog:",
+    "vitest": "^3.2.4",
     "zod": "catalog:"
   },
   "peerDependencies": {

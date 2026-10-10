@@ -40,6 +40,16 @@
     "ui-add": {
       "cache": false,
       "interactive": true
+    },
+    "test:unit": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "cache": false
+    },
+    "test:integration": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "cache": false
     }
   },
   "globalEnv": [
@@ -47,7 +57,15 @@
     "AUTH_DISCORD_ID",
     "AUTH_DISCORD_SECRET",
     "AUTH_SECRET",
-    "PORT"
+    "PORT",
+    "STUDIO_URL",
+    "STUDIO_ALLOWED_EMAILS",
+    "AGENT_MODEL_ID",
+    "AGENT_PROVIDER",
+    "AGENT_CODE_VERSION",
+    "WORKER_CONCURRENCY",
+    "LOG_LEVEL",
+    "APP_VERSION"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",
@@ -55,6 +73,13 @@
     "VERCEL",
     "VERCEL_ENV",
     "VERCEL_URL",
-    "npm_lifecycle_event"
+    "npm_lifecycle_event",
+    "OTEL_*",
+    "AWS_*",
+    "TEST_POSTGRES_URL",
+    "NEXT_RUNTIME",
+    "GEMINI_API_KEY",
+    "NEXT_OTEL_VERBOSE",
+    "NEXT_OTEL_FETCH_DISABLED"
   ]
 }

@@ -6,6 +6,7 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 
 - Node.js `^24.0.0`
 - pnpm `^10.34.6`
+- TypeScript 7.0.2 and ESLint 10 (installed through the workspace catalog)
 
 ## Getting started
 
@@ -33,6 +34,7 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 
    ```sh
    pnpm auth:generate
+   pnpm db:migrate
    pnpm db:push
    ```
 
@@ -45,6 +47,13 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 ## Workspace layout
 
 - `apps/webapp` — Next.js app with tRPC, Better Auth, and the shared UI
+- `apps/studio` — internal playground, eval authoring, trajectories and reliability/cost dashboard
+- `apps/backend` — durable Strands worker
+- `packages/ai` — metered Gemini AI Studio through native Strands GoogleModel
+- `packages/agent` — SDK, API tools and editable system prompt
+- `packages/evals` — assertions and LLM judges
+- `packages/observability` — Pino and OpenTelemetry for every server app
+- `packages/email` — React Email templates and provider-neutral delivery interface
 - `packages/api` — tRPC routers and context
 - `packages/auth` — Better Auth configuration
 - `packages/db` — Drizzle schema, client, and database scripts
@@ -55,17 +64,22 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 
 ## Common commands
 
-| Command                     | Description                                        |
-| --------------------------- | -------------------------------------------------- |
-| `pnpm dev:webapp`           | Run the web app and its workspace dependencies     |
-| `pnpm build`                | Build all workspaces                               |
-| `pnpm lint`                 | Lint all workspaces                                |
-| `pnpm typecheck`            | Type-check all workspaces                          |
-| `pnpm format:fix`           | Format all workspaces                              |
-| `pnpm db:push`              | Push the Drizzle schema to the configured database |
-| `pnpm db:studio`            | Open Drizzle Studio                                |
-| `pnpm exec multitudes help` | Show CLI help                                      |
-| `pnpm syncpack`             | Check dependency version consistency               |
+| Command                     | Description                                                  |
+| --------------------------- | ------------------------------------------------------------ |
+| `pnpm dev:webapp`           | Run the web app and its workspace dependencies               |
+| `pnpm build:apps`           | Build both Next apps and the worker with a Git version stamp |
+| `pnpm test:health`          | Smoke-test health endpoints after building                   |
+| `pnpm build`                | Build all workspaces                                         |
+| `pnpm lint`                 | Lint all workspaces                                          |
+| `pnpm test:unit`            | Run unit and UI tests                                        |
+| `pnpm test:integration`     | Run HTTP adapter and isolated PostgreSQL tests               |
+| `pnpm dev:email`            | Preview React Email templates on port 3002                   |
+| `pnpm typecheck`            | Type-check all workspaces                                    |
+| `pnpm format:fix`           | Format all workspaces                                        |
+| `pnpm db:push`              | Push the Drizzle schema to the configured database           |
+| `pnpm db:studio`            | Open Drizzle Studio                                          |
+| `pnpm exec multitudes help` | Show CLI help                                                |
+| `pnpm syncpack`             | Check dependency version consistency                         |
 
 ## Commit messages
 
@@ -76,3 +90,14 @@ Use Conventional Commit messages with a non-empty scope, for example `feat(webap
 Configure the environment variables in your hosting provider, including the database connection, auth secret, and OAuth credentials. Set up the OAuth provider's callback URL for your deployed app. Update the app metadata and deployment settings in `apps/webapp` for your domain.
 
 The `@multitudes/*` package scope is a placeholder; replace it with your own scope when you customize the workspace.
+
+## Agent runtime and evaluation studio
+
+The product app remains in `apps/webapp`. A separate Next.js app in `apps/studio`
+provides internal run inspection, eval case authoring, and experiment comparisons.
+`apps/backend` runs the shared Strands SDK agent on a durable Postgres queue.
+Pino and OpenTelemetry live in `packages/observability`.
+
+See [the setup and operating guide](docs/agent-platform.md) for migrations,
+credentials, studio access, telemetry, and recovery limits. Start the applications
+with `pnpm dev:studio` (port 3001) and `pnpm dev:backend`. No sandboxes are configured.

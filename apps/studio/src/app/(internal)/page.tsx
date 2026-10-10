@@ -1,0 +1,133 @@
+import Link from "next/link";
+
+import { listRuns } from "@multitudes/db/runs";
+import { Button } from "@multitudes/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@multitudes/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@multitudes/ui/table";
+import { Textarea } from "@multitudes/ui/textarea";
+
+import { ConfigurationFields } from "~/components/configuration-fields";
+import { LiveRefresh } from "~/components/live-refresh";
+import { requireStaff } from "~/server/access";
+import { startRun } from "~/server/actions";
+
+export default async function RunsPage() {
+  await requireStaff();
+  const runs = await listRuns();
+  return (
+    <>
+      <p className="eyebrow">OBSERVE / ITERATE</p>
+      <h1>Agent runs</h1>
+      <p className="muted">
+        Durable trajectories from your shared production and evaluation runtime.
+      </p>
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        {[
+          {
+            title: "Recent runs",
+            value: runs.length,
+            detail: "Latest 100 trajectories",
+          },
+          {
+            title: "In progress",
+            value: runs.filter(
+              (run) => run.status === "queued" || run.status === "running",
+            ).length,
+            detail: "Queued and running",
+          },
+          {
+            title: "Needs attention",
+            value: runs.filter((run) => run.status === "failed").length,
+            detail: "Failed runs in this window",
+          },
+        ].map((item) => (
+          <Card key={item.title}>
+            <CardHeader className="pb-0">
+              <CardTitle className="text-muted-foreground text-xs font-medium">
+                {item.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold tracking-tight">
+                {item.value}
+              </p>
+              <p className="text-muted-foreground mt-2 text-xs">
+                {item.detail}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <div className="workspace">
+        <section className="panel">
+          <div className="section-title">
+            <h2>Recent runs</h2>
+            <LiveRefresh
+              active={runs.some(
+                (run) => run.status === "queued" || run.status === "running",
+              )}
+            />
+          </div>
+          {runs.length ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Input</TableHead>
+                  <TableHead>Mode</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Started</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {runs.map((run) => (
+                  <TableRow key={run.id}>
+                    <TableCell>
+                      <Link href={`/runs/${run.id}`}>
+                        {run.input.slice(0, 90)}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{run.mode}</TableCell>
+                    <TableCell>
+                      <span className={`status ${run.status}`}>
+                        {run.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>{run.createdAt.toLocaleString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="empty">
+              No runs yet. Submit a task to capture your first trajectory.
+            </p>
+          )}
+        </section>
+        <section className="panel">
+          <h2>Run a task</h2>
+          <form action={startRun}>
+            <label>
+              Task
+              <Textarea
+                name="input"
+                rows={4}
+                required
+                maxLength={64000}
+                placeholder="What should the agent do?"
+              />
+            </label>
+            <ConfigurationFields />
+            <Button>Queue run</Button>
+          </form>
+        </section>
+      </div>
+    </>
+  );
+}

@@ -1,41 +1,31 @@
-import { Suspense } from "react";
+import { WorkspaceShell } from "@multitudes/ui/workspace-shell";
 
-import { HydrateClient, prefetch, trpc } from "~/trpc/server";
+import { getSession } from "~/auth/server";
 import { AuthShowcase } from "./_components/auth-showcase";
-import {
-  CreatePostForm,
-  PostCardSkeleton,
-  PostList,
-} from "./_components/posts";
+import { Chat } from "./_components/chat";
 
-export default function HomePage() {
-  prefetch(trpc.post.all.queryOptions());
+export const dynamic = "force-dynamic";
 
+export default async function HomePage() {
+  const session = await getSession();
   return (
-    <HydrateClient>
-      <main className="container h-screen py-16">
-        <div className="flex flex-col items-center justify-center gap-4">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Your <span className="text-primary">Web</span> App
-          </h1>
-          <AuthShowcase />
-
-          <CreatePostForm />
-          <div className="w-full max-w-2xl overflow-y-scroll">
-            <Suspense
-              fallback={
-                <div className="flex w-full flex-col gap-4">
-                  <PostCardSkeleton />
-                  <PostCardSkeleton />
-                  <PostCardSkeleton />
-                </div>
-              }
-            >
-              <PostList />
-            </Suspense>
-          </div>
-        </div>
+    <WorkspaceShell
+      links={[{ href: "/", label: "Workspace", icon: "chat", active: true }]}
+      account={<AuthShowcase />}
+    >
+      <main className="mx-auto max-w-6xl px-5 py-10 md:px-10">
+        <p className="text-primary mb-3 text-[10px] font-medium tracking-[0.2em] uppercase">
+          Think it through. Make it happen.
+        </p>
+        <h1 className="mb-3 text-3xl font-semibold tracking-tight md:text-4xl">
+          A little direction. A lot of possibility.
+        </h1>
+        <p className="text-muted-foreground mb-8 max-w-xl text-sm leading-6">
+          A focused space to work with your agent, from the first question to a
+          finished result.
+        </p>
+        <Chat signedIn={!!session} />
       </main>
-    </HydrateClient>
+    </WorkspaceShell>
   );
 }

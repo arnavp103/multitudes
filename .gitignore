@@ -43,3 +43,7 @@ dist/
 
 # turbo
 .turbo
+
+# Immutable build stamp, generated during install/build (included in deployment artifacts)
+packages/observability/src/build-info.generated.ts
+packages/observability/src/build-info.generated.ts.*.tmp

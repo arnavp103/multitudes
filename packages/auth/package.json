@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@multitudes/db": "workspace:*",
+    "@multitudes/observability": "workspace:*",
     "@t3-oss/env-core": "^0.13.11",
     "better-auth": "catalog:",
     "zod": "catalog:"
