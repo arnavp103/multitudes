@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { nextCookies } from "better-auth/next-js";
 
 import { initAuth } from "@multitudes/auth";
+import { isUserBanned } from "@multitudes/auth/permissions";
 
 import { env } from "~/env";
 
@@ -18,9 +19,10 @@ export const auth = initAuth({
   discordClientSecret: env.AUTH_DISCORD_SECRET,
   extraPlugins: [nextCookies()],
 });
-export const getSession = cache(async () =>
-  auth.api.getSession({
+export const getSession = cache(async () => {
+  const session = await auth.api.getSession({
     headers: await headers(),
     query: { disableCookieCache: true },
-  }),
-);
+  });
+  return session && !isUserBanned(session.user) ? session : null;
+});

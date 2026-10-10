@@ -16,7 +16,7 @@ export const env = createEnv({
    */
   server: {
     POSTGRES_URL: z.url(),
-    WEBAPP_URL: z.url().default("http://localhost:3000"),
+    WEBAPP_URL: z.url().optional(),
     AUTH_PRODUCTION_URL: z.url().optional(),
     AGENT_PROVIDER: z.literal("gemini").default("gemini"),
     AGENT_MODEL_ID: z.string().default("gemini-3.8-flash"),

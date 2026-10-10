@@ -117,11 +117,17 @@ if (command === "down") {
         domain: "localhost",
       });
       const token = randomBytes(32).toString("hex");
+      let consumed = false;
       const server = createServer((request, response) => {
-        if (request.method !== "GET" || request.url !== `/${token}`) {
+        if (
+          consumed ||
+          request.method !== "GET" ||
+          request.url !== `/${token}`
+        ) {
           response.writeHead(404).end();
           return;
         }
+        consumed = true;
         response.writeHead(302, {
           location: baseUrl,
           "cache-control": "no-store",
@@ -216,7 +222,15 @@ if (command === "down") {
         process.once("SIGTERM", resolve);
       });
       try {
-        await Promise.race([...processes.map((child) => child.done), stopped]);
+        const exitCode = await Promise.race([
+          ...processes.map((child) => child.done),
+          stopped,
+        ]);
+        if (exitCode !== undefined) {
+          throw new Error(
+            `A local application exited unexpectedly (code ${exitCode})`,
+          );
+        }
       } finally {
         await Promise.all(processes.map((child) => child.stop()));
       }

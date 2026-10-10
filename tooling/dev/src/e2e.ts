@@ -22,6 +22,8 @@ const env = {
   AUTH_DISCORD_ID: "fixture",
   AUTH_DISCORD_SECRET: "fixture",
   AGENT_CODE_VERSION: "e2e",
+  AGENT_PROVIDER: "gemini",
+  AGENT_MODEL_ID: "gemini-3.8-flash",
   GEMINI_API_KEY: "http-fixture",
   PORT: String(workerPort),
   OTEL_SDK_DISABLED: "true",

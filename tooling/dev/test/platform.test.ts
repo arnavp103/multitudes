@@ -108,9 +108,9 @@ test("staff promotes production input to an eval and observes a completed experi
   const runId = new URL(page.url()).searchParams.get("run");
   await page.goto(`${studioUrl}/runs/${runId}`);
   await page.getByRole("link", { name: "Create eval case" }).click();
-  await expect(page.getByLabel("Input", { exact: true })).toHaveValue(
-    "An input to promote",
-  );
+  await expect(
+    page.getByRole("textbox", { name: "Input", exact: true }),
+  ).toHaveValue("An input to promote");
   await page.getByLabel("Name", { exact: true }).fill("Browser regression");
   await page.getByLabel("Output must contain").fill("Fixture result");
   await page.getByRole("button", { name: /Save/ }).click();
@@ -154,6 +154,11 @@ test("anonymous, regular, unverified, expired and banned accounts cannot view St
         .where(eq(user.id, person.account.id));
     await context.addCookies(person.login.cookies);
     await page.goto(`${studioUrl}/admin`);
+    if (state === "expired") await expect(page).toHaveURL(`${studioUrl}/login`);
+    else
+      await expect(
+        page.getByText("Unable to load this page", { exact: true }),
+      ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "How your agents are doing" }),
     ).toHaveCount(0);

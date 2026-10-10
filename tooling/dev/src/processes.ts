@@ -1,8 +1,9 @@
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { setTimeout } from "node:timers/promises";
+import { fileURLToPath } from "node:url";
 
-export const root = new URL("../../../", import.meta.url).pathname;
+export const root = fileURLToPath(new URL("../../../", import.meta.url));
 /** Allocate a loopback port independently for every worktree/test invocation. */
 export async function freePort(): Promise<number> {
   const server = createServer();

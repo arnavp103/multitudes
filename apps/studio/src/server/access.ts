@@ -6,7 +6,7 @@ import { nextCookies } from "better-auth/next-js";
 
 import type { StudioPermission } from "@multitudes/auth/permissions";
 import { initAuth } from "@multitudes/auth";
-import { canAccessStudio } from "@multitudes/auth/permissions";
+import { canAccessStudio, isUserBanned } from "@multitudes/auth/permissions";
 import { createLogger } from "@multitudes/observability/logger";
 
 import { readStudioEnv } from "~/env";
@@ -39,6 +39,7 @@ export async function requireStaff(permission: StudioPermission = "view") {
   });
   if (!session) redirect("/login");
   if (
+    isUserBanned(session.user) ||
     !session.user.emailVerified ||
     !canAccessStudio(session.user.role, permission)
   ) {

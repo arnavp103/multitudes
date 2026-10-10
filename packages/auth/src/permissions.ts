@@ -17,6 +17,17 @@ export const roles = {
 };
 export type StudioPermission = "view" | "author" | "execute" | "users";
 export type AppRole = keyof typeof roles;
+/** Check current account state even when a session predates a ban. Expired bans no longer apply. */
+export function isUserBanned(
+  user: { banned?: boolean | null; banExpires?: Date | null },
+  now = Date.now(),
+) {
+  return (
+    user.banned === true &&
+    (!user.banExpires || user.banExpires.getTime() > now)
+  );
+}
+
 /** Reuse the plugin's role definitions for application-owned server boundaries. */
 export function canAccessStudio(
   role: string | null | undefined,

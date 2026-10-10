@@ -7,7 +7,7 @@ import { session as sessionTable } from "@multitudes/db/schema";
 import { createTestDatabase } from "@multitudes/db/testing";
 
 import { initAuth } from "../src/index";
-import { canAccessStudio } from "../src/permissions";
+import { canAccessStudio, isUserBanned } from "../src/permissions";
 import { createTestAuth } from "../src/testing";
 
 await test("real sessions enforce roles, expiry, revocation, bans, and cookie isolation", async () => {
@@ -40,6 +40,15 @@ await test("real sessions enforce roles, expiry, revocation, bans, and cookie is
     assert.equal(canAccessStudio(actual.user.role, "execute"), false);
     assert.equal(canAccessStudio("evaluator", "author"), true);
     assert.equal(canAccessStudio("evaluator", "users"), false);
+    assert.equal(isUserBanned({ banned: true }), true);
+    assert.equal(
+      isUserBanned({ banned: true, banExpires: new Date(10) }, 11),
+      false,
+    );
+    assert.equal(
+      isUserBanned({ banned: true, banExpires: new Date(10) }, 9),
+      true,
+    );
     await assert.rejects(
       auth.api.setRole({
         headers: regular.headers,
