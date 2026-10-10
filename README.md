@@ -76,3 +76,14 @@ Use Conventional Commit messages with a non-empty scope, for example `feat(webap
 Configure the environment variables in your hosting provider, including the database connection, auth secret, and OAuth credentials. Set up the OAuth provider's callback URL for your deployed app. Update the app metadata and deployment settings in `apps/webapp` for your domain.
 
 The `@multitudes/*` package scope is a placeholder; replace it with your own scope when you customize the workspace.
+
+## Agent runtime and evaluation studio
+
+The product app remains in `apps/webapp`. A separate Next.js app in `apps/studio`
+provides internal run inspection, eval case authoring, and experiment comparisons.
+`apps/backend` runs the shared Strands SDK agent on a durable Postgres queue.
+Pino and OpenTelemetry live in `packages/observability`.
+
+See [the setup and operating guide](docs/agent-platform.md) for migrations,
+credentials, studio access, telemetry, and recovery limits. Start the applications
+with `pnpm dev:studio` (port 3001) and `pnpm dev:backend`. No sandboxes are configured.

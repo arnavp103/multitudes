@@ -1,0 +1,7 @@
+{
+  "extends": "@multitudes/tsconfig/base.json",
+  "include": ["."],
+  "compilerOptions": {
+    "types": ["node"]
+  }
+}

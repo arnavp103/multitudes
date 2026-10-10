@@ -37,3 +37,8 @@ export const env = createEnv({
   skipValidation:
     !!process.env.CI || process.env.npm_lifecycle_event === "lint",
 });
+
+/** Next initializes telemetry only in the Node server runtime. */
+export function isNodeRuntime() {
+  return process.env.NEXT_RUNTIME === "nodejs";
+}

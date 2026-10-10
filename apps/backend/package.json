@@ -1,0 +1,36 @@
+{
+  "name": "@multitudes/backend",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "pnpm with-env tsx watch src/bootstrap.ts",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint --flag unstable_native_nodejs_ts_config",
+    "typecheck": "tsc --noEmit",
+    "start": "pnpm with-env tsx src/bootstrap.ts",
+    "with-env": "dotenvx run -f ../../.env --"
+  },
+  "dependencies": {
+    "@multitudes/agent": "workspace:*",
+    "@multitudes/db": "workspace:*",
+    "@multitudes/evals": "workspace:*",
+    "@multitudes/observability": "workspace:*",
+    "@opentelemetry/api": "^1.9.0",
+    "@strands-agents/sdk": "1.20.0",
+    "tsx": "^4.22.5",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@multitudes/eslint-config": "workspace:*",
+    "@multitudes/prettier-config": "workspace:*",
+    "@multitudes/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@multitudes/prettier-config"
+}

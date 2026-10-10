@@ -12,6 +12,10 @@ import { z, ZodError } from "zod/v4";
 
 import type { Auth } from "@multitudes/auth";
 import { db } from "@multitudes/db/client";
+import { withSpan } from "@multitudes/observability/context";
+import { createLogger } from "@multitudes/observability/logger";
+
+const logger = createLogger("multitudes-api");
 
 /**
  * 1. CONTEXT
@@ -74,27 +78,24 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 export const createTRPCRouter = t.router;
 
 /**
- * Middleware for timing procedure execution and adding an articifial delay in development.
+ * Middleware for correlated procedure timing and application logs.
  *
- * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
- * network latency that would occur in production but not in local development.
  */
-const timingMiddleware = t.middleware(async ({ next, path }) => {
-  const start = Date.now();
-
-  if (t._config.isDev) {
-    // artificial delay in dev 100-500ms
-    const waitMs = Math.floor(Math.random() * 400) + 100;
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
-  }
-
-  const result = await next();
-
-  const end = Date.now();
-  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
-
-  return result;
-});
+const timingMiddleware = t.middleware(({ next, path }) =>
+  withSpan("trpc.request", { "rpc.method": path }, async () => {
+    const start = performance.now();
+    const result = await next();
+    logger.info(
+      {
+        procedure: path,
+        duration_ms: performance.now() - start,
+        ok: result.ok,
+      },
+      "tRPC request completed",
+    );
+    return result;
+  }),
+);
 
 /**
  * Public (unauthed) procedure

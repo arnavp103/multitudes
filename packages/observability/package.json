@@ -1,0 +1,52 @@
+{
+  "name": "@multitudes/observability",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./logger": {
+      "types": "./dist/logger.d.ts",
+      "default": "./src/logger.ts"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "default": "./src/node.ts"
+    },
+    "./context": {
+      "types": "./dist/context.d.ts",
+      "default": "./src/context.ts"
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint --flag unstable_native_nodejs_ts_config",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/api-logs": "^0.223.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.223.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.223.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.223.0",
+    "@opentelemetry/resources": "^2.8.0",
+    "@opentelemetry/sdk-logs": "^0.223.0",
+    "@opentelemetry/sdk-metrics": "^2.8.0",
+    "@opentelemetry/sdk-node": "^0.223.0",
+    "pino": "^10.3.1"
+  },
+  "devDependencies": {
+    "@multitudes/eslint-config": "workspace:*",
+    "@multitudes/prettier-config": "workspace:*",
+    "@multitudes/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "tsx": "^4.22.5",
+    "typescript": "catalog:"
+  },
+  "prettier": "@multitudes/prettier-config"
+}

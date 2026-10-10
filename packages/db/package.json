@@ -14,6 +14,14 @@
     "./schema": {
       "types": "./dist/schema.d.ts",
       "default": "./src/schema.ts"
+    },
+    "./runs": {
+      "types": "./dist/runs.d.ts",
+      "default": "./src/runs.ts"
+    },
+    "./queue": {
+      "types": "./dist/queue.d.ts",
+      "default": "./src/queue.ts"
     }
   },
   "license": "MIT",
@@ -26,21 +34,29 @@
     "push": "pnpm with-env drizzle-kit push",
     "studio": "pnpm with-env drizzle-kit studio",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
-    "with-env": "dotenvx run -f ../../.env --"
+    "with-env": "dotenvx run -f ../../.env --",
+    "generate": "drizzle-kit generate --config drizzle.agents.config.ts",
+    "migrate": "pnpm with-env drizzle-kit migrate --config drizzle.agents.config.ts",
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "dependencies": {
-    "@vercel/postgres": "^0.10.0",
+    "@multitudes/observability": "workspace:*",
     "drizzle-orm": "^0.45.4",
     "drizzle-zod": "^0.8.3",
+    "pg": "^8.16.3",
+    "pg-boss": "12.37.1",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@multitudes/eslint-config": "workspace:*",
     "@multitudes/prettier-config": "workspace:*",
     "@multitudes/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/pg": "^8.15.6",
     "drizzle-kit": "^0.31.11",
     "eslint": "catalog:",
     "prettier": "catalog:",
+    "tsx": "^4.22.5",
     "typescript": "catalog:"
   },
   "prettier": "@multitudes/prettier-config"

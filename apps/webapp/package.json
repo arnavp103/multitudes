@@ -16,6 +16,7 @@
     "@multitudes/api": "workspace:*",
     "@multitudes/auth": "workspace:*",
     "@multitudes/db": "workspace:*",
+    "@multitudes/observability": "workspace:*",
     "@multitudes/ui": "workspace:*",
     "@multitudes/validators": "workspace:*",
     "@t3-oss/env-nextjs": "^0.13.11",

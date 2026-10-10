@@ -10,11 +10,14 @@ const config = {
   /** Enables hot reloading for local packages without a build step */
   transpilePackages: [
     "@multitudes/api",
+    "@multitudes/observability",
     "@multitudes/auth",
     "@multitudes/db",
     "@multitudes/ui",
     "@multitudes/validators",
   ],
+
+  serverExternalPackages: ["pg", "pino"],
 
   /** We already do linting and typechecking as separate tasks in CI */
   typescript: { ignoreBuildErrors: true },

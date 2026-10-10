@@ -24,7 +24,12 @@
     "prepare": "husky",
     "postinstall": "pnpm lint:ws",
     "typecheck": "turbo run typecheck",
-    "ui-add": "turbo run ui-add"
+    "ui-add": "turbo run ui-add",
+    "dev:studio": "turbo watch dev -F @multitudes/studio...",
+    "dev:backend": "turbo watch dev -F @multitudes/backend...",
+    "db:generate": "pnpm -F @multitudes/db generate",
+    "db:migrate": "pnpm -F @multitudes/db migrate",
+    "test": "turbo run test"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
