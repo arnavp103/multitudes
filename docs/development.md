@@ -1,11 +1,12 @@
 # Local development and authenticated testing
 
-Use Node 24, pnpm 10.34.6, and Docker Compose v2. Run `pnpm install`, then
+Use Node 24 (`nvm install` reads `.nvmrc`; `nvm use` only switches the current
+shell), pnpm 10.34.6, and Docker Compose v2. Run `pnpm install`, then
 `pnpm dev:up`. The command creates a worktree-specific PostgreSQL container and
 volume, allocates independent loopback ports, applies both migration journals,
 seeds demo data, and starts webapp, Studio, and the real worker. It prints the app
-URLs. Ctrl-C stops the app processes; `pnpm dev:down` stops the database without
-deleting its volume. Every checkout has its own profile, ports, and database.
+URLs. Ctrl-C stops every process the command started, at any stage, before it
+exits; `pnpm dev:down` stops the database without deleting its volume. Every checkout has its own profile, ports, and database.
 
 Local credentials live only in ignored `.local/profile.json` (mode 0600). Do not
 copy this profile between machines/worktrees. The command uses its generated

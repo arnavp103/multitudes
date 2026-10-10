@@ -8,7 +8,7 @@ import { eq } from "@multitudes/db";
 import { migrateDatabase } from "@multitudes/db/migrate";
 import { user } from "@multitudes/db/schema";
 
-import { freePort, launch, root } from "./processes";
+import { freePort, interrupted, launch, root } from "./processes";
 import { seed } from "./seed";
 
 const profilePath = `${root}.local/profile.json`;
@@ -217,14 +217,10 @@ if (command === "down") {
           `${root}apps/backend`,
         ),
       ];
-      const stopped = new Promise<void>((resolve) => {
-        process.once("SIGINT", resolve);
-        process.once("SIGTERM", resolve);
-      });
       try {
         const exitCode = await Promise.race([
           ...processes.map((child) => child.done),
-          stopped,
+          interrupted.then(() => undefined),
         ]);
         if (exitCode !== undefined) {
           throw new Error(
