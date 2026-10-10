@@ -181,7 +181,10 @@ continue to require the verified-account role checks; there is no development by
 ## Logging conventions
 
 Use `createLogger("multitudes-<service>")` from `@multitudes/observability/logger`
-for Node code. `LOG_LEVEL` is honored centrally. Child bindings carry run IDs and
+for Node code. The webapp wraps this in one module: server code imports `logger`
+from `~/logger/server`, and client components import `logger`/`reportError` from
+`~/logger/browser`; ESLint rejects direct observability logger imports elsewhere
+in `apps/webapp`. `LOG_LEVEL` is honored centrally. Child bindings carry run IDs and
 attempt numbers; the active OTel trace/span is added automatically. Pino writes
 JSON to stdout and forwards the same redacted records to the OTel log provider.
 When `NODE_ENV=development` (as under `pnpm dev:up`), stdout is pretty-printed

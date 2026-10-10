@@ -12,9 +12,9 @@ import { createTRPCContext } from "@trpc/tanstack-react-query";
 import SuperJSON from "superjson";
 
 import type { AppRouter } from "@multitudes/api";
-import { browserLogger } from "@multitudes/observability/browser";
 
 import { env } from "~/env";
+import { logger } from "~/logger/browser";
 import { createQueryClient } from "./query-client";
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
@@ -40,7 +40,7 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
           logger: (event) => {
             const failed =
               event.direction === "down" && event.result instanceof Error;
-            browserLogger[failed ? "error" : "info"](
+            logger[failed ? "error" : "info"](
               {
                 procedure: event.path,
                 direction: event.direction,

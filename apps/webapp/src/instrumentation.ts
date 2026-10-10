@@ -16,8 +16,8 @@ export const onRequestError: Instrumentation.onRequestError = async (
 ) => {
   // eslint-disable-next-line no-restricted-properties
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
-  const { createLogger } = await import("@multitudes/observability/logger");
-  createLogger("multitudes-webapp").error(
+  const { logger } = await import("./logger/server");
+  logger.error(
     { err: error, route: context.routePath, router: context.routerKind },
     "Request failed",
   );

@@ -2,9 +2,10 @@
 
 import { useEffect } from "react";
 
-import { reportClientError } from "@multitudes/observability/browser";
 import { Alert, AlertDescription, AlertTitle } from "@multitudes/ui/alert";
 import { Button } from "@multitudes/ui/button";
+
+import { reportError } from "~/logger/browser";
 
 export default function ErrorPage({
   error,
@@ -13,7 +14,7 @@ export default function ErrorPage({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => reportClientError("webapp", error), [error]);
+  useEffect(() => reportError("webapp", error), [error]);
   return (
     <main className="mx-auto max-w-xl p-8">
       <Alert variant="destructive">
