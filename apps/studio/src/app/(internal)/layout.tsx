@@ -10,7 +10,7 @@ export default async function InternalLayout({
 }) {
   const session = await requireStaff();
   return (
-    <StudioShell email={session.user.email}>
+    <StudioShell email={session.user.email} role={session.user.role}>
       <main className="studio-content">{children}</main>
     </StudioShell>
   );

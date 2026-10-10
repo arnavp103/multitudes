@@ -36,7 +36,12 @@
     "version:stamp": "node tooling/version.mjs",
     "test:build": "node --test tooling/version.test.mjs",
     "build:apps": "node tooling/version.mjs turbo run build --filter=@multitudes/studio... --filter=@multitudes/webapp... --filter=@multitudes/backend...",
-    "test:health": "node --test tooling/health.integration.test.mjs"
+    "test:health": "node --test tooling/health.integration.test.mjs",
+    "test:e2e": "node tooling/version.mjs pnpm --filter @multitudes/dev test:e2e",
+    "dev:up": "node tooling/version.mjs pnpm --filter @multitudes/dev up",
+    "dev:login": "pnpm --filter @multitudes/dev login",
+    "dev:down": "pnpm --filter @multitudes/dev down",
+    "auth:bootstrap-admin": "pnpm exec dotenvx run -f .env -- pnpm --filter @multitudes/auth bootstrap-admin"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",

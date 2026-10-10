@@ -16,6 +16,7 @@ import {
   EvalScore,
   RunEvent,
   SessionObject,
+  Submission,
 } from "./agent-schema";
 import { db, pool } from "./client";
 import { getQueue, RUN_QUEUE } from "./queue";
@@ -33,16 +34,42 @@ export type NewRun = Pick<
 export async function enqueueRuns(
   runs: NewRun[],
   experiment?: { id: string; name: string; configuration: AgentConfiguration },
+  submission?: { ownerId: string; key: string; fingerprint: string },
 ) {
   const queue = await getQueue();
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
     const transaction = drizzle({ client, casing: "snake_case" });
+    const ids = runs.map(() => randomUUID());
+    if (submission) {
+      const inserted = await transaction
+        .insert(Submission)
+        .values({ ...submission, runIds: ids })
+        .onConflictDoNothing({ target: [Submission.ownerId, Submission.key] })
+        .returning({ id: Submission.id });
+      if (!inserted.length) {
+        const [existing] = await transaction
+          .select()
+          .from(Submission)
+          .where(
+            and(
+              eq(Submission.ownerId, submission.ownerId),
+              eq(Submission.key, submission.key),
+            ),
+          );
+        if (existing?.fingerprint !== submission.fingerprint)
+          throw new Error(
+            "Submission key was already used for a different request",
+          );
+        await client.query("COMMIT");
+        return existing.runIds;
+      }
+    }
     if (experiment) await transaction.insert(EvalExperiment).values(experiment);
-    const ids: string[] = [];
-    for (const run of runs) {
-      const id = randomUUID();
+    for (const [index, run] of runs.entries()) {
+      const id = ids[index];
+      if (!id) throw new Error("Missing generated run identity");
       await transaction.insert(AgentRun).values({ ...run, id });
       const job = await queue.send(
         RUN_QUEUE,
@@ -53,7 +80,6 @@ export async function enqueueRuns(
         },
       );
       if (!job) throw new Error("Queue rejected run");
-      ids.push(id);
     }
     await client.query("COMMIT");
     logger.info(

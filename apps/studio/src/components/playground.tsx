@@ -33,7 +33,10 @@ export function Playground({
   return (
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
       <AgentChat
-        submit={(input) => sendPlayground(input, config)}
+        submissionScope={JSON.stringify(config)}
+        submit={(input, requestKey) =>
+          sendPlayground(input, requestKey, config)
+        }
         poll={pollPlayground}
         runHref={(id) => `/runs/${id}`}
       />

@@ -5,7 +5,7 @@ export function readStudioEnv() {
   return z
     .object({
       STUDIO_URL: z.url().default("http://localhost:3001"),
-      STUDIO_ALLOWED_EMAILS: z.string().default(""),
+      STUDIO_AUTH_PRODUCTION_URL: z.url().optional(),
       AUTH_SECRET: z.string().min(32),
       AUTH_DISCORD_ID: z.string().min(1),
       AUTH_DISCORD_SECRET: z.string().min(1),

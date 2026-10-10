@@ -11,6 +11,7 @@ import superjson from "superjson";
 import { z, ZodError } from "zod/v4";
 
 import type { Auth } from "@multitudes/auth";
+import { isUserBanned } from "@multitudes/auth/permissions";
 import { db } from "@multitudes/db/client";
 import { withSpan } from "@multitudes/observability/context";
 import { createLogger } from "@multitudes/observability/logger";
@@ -40,7 +41,7 @@ export const createTRPCContext = async (opts: {
   });
   return {
     authApi,
-    session,
+    session: session && !isUserBanned(session.user) ? session : null,
     db,
   };
 };

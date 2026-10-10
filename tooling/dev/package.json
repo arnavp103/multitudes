@@ -1,0 +1,32 @@
+{
+  "name": "@multitudes/dev",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --flag unstable_native_nodejs_ts_config",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "test:e2e": "node --import tsx src/e2e.ts",
+    "up": "node --import tsx src/local.ts up",
+    "login": "node --import tsx src/local.ts login",
+    "down": "node --import tsx src/local.ts down"
+  },
+  "dependencies": {
+    "@multitudes/auth": "workspace:*",
+    "@multitudes/db": "workspace:*",
+    "@multitudes/observability": "workspace:*",
+    "@playwright/test": "^1.64.0",
+    "tsx": "^4.22.5",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@multitudes/eslint-config": "workspace:*",
+    "@multitudes/prettier-config": "workspace:*",
+    "@multitudes/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@multitudes/prettier-config"
+}

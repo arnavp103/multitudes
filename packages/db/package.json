@@ -30,6 +30,14 @@
     "./dashboard": {
       "types": "./dist/dashboard.d.ts",
       "default": "./src/dashboard.ts"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "default": "./src/testing.ts"
+    },
+    "./migrate": {
+      "types": "./dist/migrate.d.ts",
+      "default": "./src/migrate.ts"
     }
   },
   "license": "MIT",
@@ -43,8 +51,8 @@
     "studio": "pnpm with-env drizzle-kit studio",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
     "with-env": "dotenvx run -f ../../.env --",
-    "generate": "drizzle-kit generate --config drizzle.agents.config.ts",
-    "migrate": "pnpm with-env drizzle-kit migrate --config drizzle.agents.config.ts",
+    "generate": "drizzle-kit generate --config drizzle.core.config.ts && drizzle-kit generate --config drizzle.agents.config.ts",
+    "migrate": "pnpm with-env node --import tsx script/migrate.ts",
     "test:integration": "node --import tsx --test test/integration.test.ts"
   },
   "dependencies": {

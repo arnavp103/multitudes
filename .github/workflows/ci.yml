@@ -93,3 +93,39 @@ jobs:
         run: pnpm build:apps
       - name: Health endpoints retain the build identity
         run: pnpm test:health
+
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: multitudes
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_DB: multitudes_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U multitudes -d multitudes_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_POSTGRES_URL: postgres://multitudes:test-only@localhost:5432/multitudes_test
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./tooling/github/setup
+      - name: Install browser
+        run: pnpm --filter @multitudes/dev exec playwright install --with-deps chromium
+      - name: Build applications
+        run: pnpm build:apps
+      - name: Authenticated browser journeys
+        run: pnpm test:e2e
+      - name: Browser failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failures
+          path: |
+            tooling/dev/test-results
+            tooling/dev/playwright-report

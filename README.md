@@ -10,6 +10,11 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 
 ## Getting started
 
+For the isolated local stack, install dependencies and run `pnpm dev:up`
+(Docker Compose v2 required). In another terminal, run `pnpm dev:login studio admin`.
+See [local development](docs/development.md) for fixtures and browser testing.
+The steps below configure an existing database and OAuth provider instead.
+
 1. Install dependencies:
 
    ```sh
@@ -30,12 +35,10 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 
    The pre-commit hook blocks unencrypted dotenv files and scans staged changes with Gitleaks. Install Gitleaks locally with `go install github.com/zricethezav/gitleaks/v8@v8.30.1`.
 
-3. Generate the Better Auth database schema and push the Drizzle schema:
+3. Apply the versioned auth and agent database migrations:
 
    ```sh
-   pnpm auth:generate
    pnpm db:migrate
-   pnpm db:push
    ```
 
 4. Start the web app:
@@ -101,3 +104,5 @@ Pino and OpenTelemetry live in `packages/observability`.
 See [the setup and operating guide](docs/agent-platform.md) for migrations,
 credentials, studio access, telemetry, and recovery limits. Start the applications
 with `pnpm dev:studio` (port 3001) and `pnpm dev:backend`. No sandboxes are configured.
+
+See [development and authenticated testing](docs/development.md) for one-command local setup, role bootstrap, auth migrations, and browser tests. The [observability proposal review](docs/observability-roadmap.md) records the separate follow-up design.

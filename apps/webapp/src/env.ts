@@ -1,11 +1,10 @@
 import { createEnv } from "@t3-oss/env-nextjs";
-import { vercel } from "@t3-oss/env-nextjs/presets-zod";
 import { z } from "zod/v4";
 
 import { authEnv } from "@multitudes/auth/env";
 
 export const env = createEnv({
-  extends: [authEnv(), vercel()],
+  extends: [authEnv()],
   shared: {
     NODE_ENV: z
       .enum(["development", "production", "test"])
@@ -17,6 +16,8 @@ export const env = createEnv({
    */
   server: {
     POSTGRES_URL: z.url(),
+    WEBAPP_URL: z.url().optional(),
+    AUTH_PRODUCTION_URL: z.url().optional(),
     AGENT_PROVIDER: z.literal("gemini").default("gemini"),
     AGENT_MODEL_ID: z.string().default("gemini-3.8-flash"),
     AGENT_CODE_VERSION: z.string().default("local"),

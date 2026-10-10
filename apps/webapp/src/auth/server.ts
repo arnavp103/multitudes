@@ -5,27 +5,24 @@ import { headers } from "next/headers";
 import { nextCookies } from "better-auth/next-js";
 
 import { initAuth } from "@multitudes/auth";
+import { isUserBanned } from "@multitudes/auth/permissions";
 
 import { env } from "~/env";
 
-const baseUrl =
-  env.VERCEL_ENV === "production"
-    ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : env.VERCEL_ENV === "preview"
-      ? `https://${env.VERCEL_URL}`
-      : "http://localhost:3000";
-
+const baseUrl = env.WEBAPP_URL ?? "http://localhost:3000";
 export const auth = initAuth({
   baseUrl,
-  productionUrl: env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "http://localhost:3000",
+  productionUrl: env.AUTH_PRODUCTION_URL ?? baseUrl,
+  cookiePrefix: "multitudes-webapp",
   secret: env.AUTH_SECRET,
   discordClientId: env.AUTH_DISCORD_ID,
   discordClientSecret: env.AUTH_DISCORD_SECRET,
   extraPlugins: [nextCookies()],
 });
-
-export const getSession = cache(async () =>
-  auth.api.getSession({ headers: await headers() }),
-);
+export const getSession = cache(async () => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+    query: { disableCookieCache: true },
+  });
+  return session && !isUserBanned(session.user) ? session : null;
+});

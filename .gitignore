@@ -47,3 +47,8 @@ dist/
 # Immutable build stamp, generated during install/build (included in deployment artifacts)
 packages/observability/src/build-info.generated.ts
 packages/observability/src/build-info.generated.ts.*.tmp
+
+# Isolated local development credentials and browser test artifacts
+.local/
+playwright-report/
+test-results/

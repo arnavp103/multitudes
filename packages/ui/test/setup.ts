@@ -5,6 +5,7 @@ afterEach(() => {
   cleanup();
   window.history.replaceState(null, "", "/");
   localStorage.clear();
+  sessionStorage.clear();
   vi.restoreAllMocks();
 });
 Object.defineProperty(window, "matchMedia", {
