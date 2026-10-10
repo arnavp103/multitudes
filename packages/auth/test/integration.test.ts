@@ -6,6 +6,7 @@ import { eq } from "@multitudes/db";
 import { session as sessionTable } from "@multitudes/db/schema";
 import { createTestDatabase } from "@multitudes/db/testing";
 
+import { credentialAccount, provisionAccount } from "../src/credentials";
 import { initAuth } from "../src/index";
 import { canAccessStudio, isUserBanned } from "../src/permissions";
 import { createTestAuth } from "../src/testing";
@@ -101,6 +102,107 @@ await test("real sessions enforce roles, expiry, revocation, bans, and cookie is
       }),
     );
     assert.equal(response.status, 403);
+  } finally {
+    await database.close();
+  }
+});
+
+await test("email/password sign-up is app-scoped and provisioned staff can sign in", async () => {
+  const database = await createTestDatabase();
+  try {
+    const options = {
+      database: database.db,
+      baseUrl: "http://localhost:4302",
+      productionUrl: "http://localhost:4302",
+      secret: "integration-only-secret-at-least-32-characters",
+    };
+    const webapp = initAuth({
+      ...options,
+      cookiePrefix: "multitudes-webapp",
+      allowSignUp: true,
+    });
+    const studio = initAuth({ ...options, cookiePrefix: "multitudes-studio" });
+    const email = `${randomUUID()}@example.test`;
+    const password = "correct horse battery";
+
+    const created = await webapp.api.signUpEmail({
+      body: { name: "Product user", email, password },
+    });
+    assert.equal(created.user.emailVerified, false);
+    assert.equal(created.user.role, "user");
+    await assert.rejects(
+      studio.api.signUpEmail({
+        body: {
+          name: "Intruder",
+          email: `${randomUUID()}@example.test`,
+          password,
+        },
+      }),
+    );
+    await assert.rejects(
+      webapp.api.signUpEmail({
+        body: {
+          name: "Short",
+          email: `${randomUUID()}@example.test`,
+          password: "short",
+        },
+      }),
+    );
+    await assert.rejects(
+      webapp.api.signInEmail({ body: { email, password: "wrong password" } }),
+    );
+    const signedIn = await webapp.api.signInEmail({
+      body: { email, password },
+    });
+    assert.ok(signedIn.token);
+
+    // A self-registered, unverified address cannot be promoted without re-keying it.
+    await assert.rejects(
+      provisionAccount(database.db, { email, role: "admin" }),
+      /verified/,
+    );
+    const operatorPassword = "operator chosen password";
+    assert.equal(
+      await provisionAccount(database.db, {
+        email: email.toUpperCase(),
+        role: "evaluator",
+        password: operatorPassword,
+      }),
+      false,
+    );
+    // The first registrant's password is replaced and their sessions revoked.
+    await assert.rejects(studio.api.signInEmail({ body: { email, password } }));
+    assert.equal(
+      (
+        await database.db
+          .select()
+          .from(sessionTable)
+          .where(eq(sessionTable.token, signedIn.token))
+      ).length,
+      0,
+    );
+    const staff = await studio.api.signInEmail({
+      body: { email, password: operatorPassword },
+    });
+    assert.equal(staff.user.emailVerified, true);
+    assert.equal(staff.user.role, "evaluator");
+
+    const newEmail = `${randomUUID()}@example.test`;
+    assert.equal(
+      await provisionAccount(database.db, {
+        email: newEmail,
+        role: "admin",
+        name: "New admin",
+        password: operatorPassword,
+      }),
+      true,
+    );
+    const admin = await studio.api.signInEmail({
+      body: { email: newEmail, password: operatorPassword },
+    });
+    assert.equal(admin.user.role, "admin");
+    assert.equal(admin.user.name, "New admin");
+    await assert.rejects(credentialAccount(admin.user.id, "short"));
   } finally {
     await database.close();
   }

@@ -15,6 +15,8 @@ export const auth = initAuth({
   productionUrl: env.AUTH_PRODUCTION_URL ?? baseUrl,
   cookiePrefix: "multitudes-webapp",
   secret: env.AUTH_SECRET,
+  // The product allows self-service email/password accounts; Studio does not.
+  allowSignUp: true,
   extraPlugins: [nextCookies()],
 });
 export const getSession = cache(async () => {

@@ -1,3 +1,5 @@
+import { SignInForm } from "~/components/sign-in-form";
+
 export default function Login() {
   return (
     <main className="login">
@@ -6,8 +8,10 @@ export default function Login() {
       <p>
         Review production trajectories. Turn failures into regression tests.
       </p>
+      <SignInForm />
       <p className="muted">
-        Access requires a verified email on the studio allowlist.
+        Studio accounts are provisioned by an administrator and need a staff
+        role.
       </p>
     </main>
   );

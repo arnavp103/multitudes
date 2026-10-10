@@ -11,9 +11,11 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 ## Getting started
 
 For the isolated local stack, install dependencies and run `pnpm dev:up`
-(Docker Compose v2 required). In another terminal, run `pnpm dev:login studio admin`.
+(Docker Compose v2 required). Sign in with a seeded account such as
+`admin@multitudes.test` / `multitudes-local`, sign up on the webapp, or run
+`pnpm dev:login studio admin` in another terminal.
 See [local development](docs/development.md) for fixtures and browser testing.
-The steps below configure an existing database and OAuth provider instead.
+The steps below configure an existing database instead.
 
 1. Install dependencies:
 
@@ -90,7 +92,7 @@ Use Conventional Commit messages with a non-empty scope, for example `feat(webap
 
 ## Before deploying
 
-Configure the environment variables in your hosting provider, including the database connection, auth secret, and OAuth credentials. Set up the OAuth provider's callback URL for your deployed app. Update the app metadata and deployment settings in `apps/webapp` for your domain.
+Configure the environment variables in your hosting provider, including the database connection and auth secret, then provision a Studio administrator with `pnpm auth:bootstrap-admin <email> --password`. Update the app metadata and deployment settings in `apps/webapp` for your domain.
 
 The `@multitudes/*` package scope is a placeholder; replace it with your own scope when you customize the workspace.
 

@@ -6,6 +6,8 @@
     ".": "./src/index.ts",
     "./env": "./env.ts",
     "./permissions": "./src/permissions.ts",
+    "./password": "./src/password.ts",
+    "./credentials": "./src/credentials.ts",
     "./testing": "./src/testing.ts"
   },
   "license": "MIT",

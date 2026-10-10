@@ -9,7 +9,7 @@ import { migrateDatabase } from "@multitudes/db/migrate";
 import { user } from "@multitudes/db/schema";
 
 import { freePort, interrupted, launch, root } from "./processes";
-import { seed } from "./seed";
+import { DEV_PASSWORD, seed } from "./seed";
 
 const profilePath = `${root}.local/profile.json`;
 const profileSchema = z.object({
@@ -177,7 +177,7 @@ if (command === "down") {
         );
       }
       console.info(
-        `Webapp: ${env.WEBAPP_URL}\nStudio: ${env.STUDIO_URL}\nSign in: pnpm dev:login studio admin`,
+        `Webapp: ${env.WEBAPP_URL}\nStudio: ${env.STUDIO_URL}\nSign in: pnpm dev:login studio admin, or use <admin|evaluator|viewer|user>@multitudes.test with password ${DEV_PASSWORD}`,
       );
       const processes = [
         launch(

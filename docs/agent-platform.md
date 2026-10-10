@@ -10,6 +10,7 @@ is configured.
 
 Run `pnpm install`, then `pnpm dev:up`. This starts an isolated Postgres database,
 webapp, Studio, and worker for the current checkout. Sign in with
+`admin@multitudes.test` / `multitudes-local` at Studio `/login`, or run
 `pnpm dev:login studio admin`. See [development.md](development.md) for prerequisites,
 fixture/live model modes, concurrent worktrees, and authenticated browser tests.
 
@@ -18,8 +19,9 @@ For manually managed environments, set `POSTGRES_URL`, app URLs, a 32+ character
 Run `pnpm db:migrate` before deployment. It applies both the core/auth baseline
 and additive agent migrations, using separate journals. Existing schema-pushed
 installations must be checked against the baseline before adoption. pg-boss still
-manages its own `pgboss` schema at startup. Bootstrap a verified administrator
-with `pnpm auth:bootstrap-admin <email>`; runtime email allowlists are no longer used.
+manages its own `pgboss` schema at startup. Provision a Studio administrator
+with `pnpm auth:bootstrap-admin <email> --password`; runtime email allowlists are no
+longer used.
 
 Every Studio page query and server action checks role permissions. Apps and worker
 share the same agent code version. Studio uses the Node runtime and keeps secrets
