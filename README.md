@@ -44,19 +44,21 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 - `packages/db` — Drizzle schema, client, and database scripts
 - `packages/ui` — shared React UI components
 - `packages/validators` — shared validation schemas
+- `tooling/cli` — the `multitudes` command-line tool
 - `tooling` — shared ESLint, Prettier, Tailwind CSS, TypeScript, and GitHub Actions configuration
 
 ## Common commands
 
-| Command           | Description                                        |
-| ----------------- | -------------------------------------------------- |
-| `pnpm dev:webapp` | Run the web app and its workspace dependencies     |
-| `pnpm build`      | Build all workspaces                               |
-| `pnpm lint`       | Lint all workspaces                                |
-| `pnpm typecheck`  | Type-check all workspaces                          |
-| `pnpm format:fix` | Format all workspaces                              |
-| `pnpm db:push`    | Push the Drizzle schema to the configured database |
-| `pnpm db:studio`  | Open Drizzle Studio                                |
+| Command                     | Description                                        |
+| --------------------------- | -------------------------------------------------- |
+| `pnpm dev:webapp`           | Run the web app and its workspace dependencies     |
+| `pnpm build`                | Build all workspaces                               |
+| `pnpm lint`                 | Lint all workspaces                                |
+| `pnpm typecheck`            | Type-check all workspaces                          |
+| `pnpm format:fix`           | Format all workspaces                              |
+| `pnpm db:push`              | Push the Drizzle schema to the configured database |
+| `pnpm db:studio`            | Open Drizzle Studio                                |
+| `pnpm exec multitudes help` | Show CLI help                                      |
 
 ## Commit messages
 

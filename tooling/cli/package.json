@@ -1,0 +1,17 @@
+{
+  "name": "@multitudes/cli",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "multitudes": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@multitudes/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

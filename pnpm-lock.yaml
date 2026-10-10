@@ -80,6 +80,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^21.2.3
         version: 21.2.3
+      '@multitudes/cli':
+        specifier: workspace:*
+        version: link:tooling/cli
       '@multitudes/prettier-config':
         specifier: workspace:*
         version: link:tooling/prettier
@@ -377,6 +380,18 @@ importers:
       prettier:
         specifier: 'catalog:'
         version: 3.6.2
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
+  tooling/cli:
+    devDependencies:
+      '@multitudes/tsconfig':
+        specifier: workspace:*
+        version: link:../typescript
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.18.12
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
