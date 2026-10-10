@@ -29,6 +29,10 @@ export async function AuthShowcase() {
         <span>{session.user.name}</span>
       </p>
 
+      <Button asChild size="sm" variant="ghost">
+        <Link href="/settings">Settings</Link>
+      </Button>
+
       <form>
         <Button
           size="sm"
