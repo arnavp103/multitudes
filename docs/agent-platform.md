@@ -257,8 +257,8 @@ code-execution, or grounding tools are configured.
   token limits are explicit. Token budgets are soft at model-call boundaries.
 - Add application behavior in `packages/api/src/agent-service.ts` (or a domain
   service), enforcing identity there. The tRPC router and `packages/agent/src/tools.ts`
-  wrap the same service. Models never supply their own actor ID. Existing tools
-  are read-only: capabilities and the authenticated user's task status/result.
+  wrap the same service. Models never supply their own actor ID. The only
+  existing tool is read-only: the authenticated user's task status/result.
 - Inject the service object in tool tests. For future side effects, require a stable
   idempotency key and durable receipt before registering the tool. Never retry a
   side effect based only on an LLM's claim. No shell, filesystem, or sandbox tools.

@@ -87,7 +87,7 @@ await test("a fresh agent restores the saved conversation without another model 
       .list()
       .map((tool) => tool.name)
       .sort(),
-    ["get_agent_capabilities", "get_task_status"],
+    ["get_task_status"],
   );
   await restored.shutdown();
 });
