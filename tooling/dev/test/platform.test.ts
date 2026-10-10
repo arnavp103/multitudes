@@ -46,6 +46,29 @@ test("product chat completes through the real queue/worker and reconnects after 
 }) => {
   const regular = await identity("webapp", "user");
   await context.addCookies(regular.login.cookies);
+  const sessionResponse = await context.request.get(
+    `${webUrl}/api/trpc/auth.getSession`,
+    {
+      headers: { origin: "https://untrusted.example" },
+    },
+  );
+  expect(sessionResponse.status()).toBe(200);
+  expect(
+    sessionResponse.headers()["access-control-allow-origin"],
+  ).toBeUndefined();
+  const sessionBody = (await sessionResponse.json()) as {
+    result: { data: { json: unknown } };
+  };
+  expect(sessionBody.result.data.json).toEqual({
+    user: {
+      id: regular.account.id,
+      name: regular.account.name,
+      image: regular.account.image,
+    },
+  });
+  expect(JSON.stringify(sessionBody)).not.toContain(regular.login.token);
+  const removed = await context.request.get(`${webUrl}/api/trpc/post.all`);
+  expect(removed.status()).toBe(404);
   await page.goto(webUrl);
   await page
     .getByRole("textbox", { name: "Task" })

@@ -56,3 +56,6 @@ the current folder up through the repository root before making changes.
   Browser tests run actual apps/worker with explicit process-local Google fixtures.
 - The observability proposal in `docs/observability-roadmap.md` is a design review,
   not an implemented events/error/report API. Do not invent those contracts.
+
+- Skills are vendored as ordinary files in `.agents/skills`; keep the MIT license
+  and companion documents. Never recreate a skills submodule.

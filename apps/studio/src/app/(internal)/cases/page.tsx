@@ -52,7 +52,11 @@ export default async function CasesPage() {
                       <pre>{item.input}</pre>
                       <pre>
                         {JSON.stringify(
-                          { assertions: item.assertions, judge: item.judge },
+                          {
+                            assertions: item.assertions,
+                            judge: item.judge,
+                            toolFixtures: item.toolFixtures,
+                          },
                           null,
                           2,
                         )}

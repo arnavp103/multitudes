@@ -5,7 +5,7 @@ import type {
   ModelStreamEvent,
   Storage,
 } from "@strands-agents/sdk";
-import { Model } from "@strands-agents/sdk";
+import { Model, ModelThrottledError } from "@strands-agents/sdk";
 
 import { createAgent } from "../src/index";
 
@@ -104,4 +104,42 @@ await test("trajectory persistence failure stops execution before spending a mod
   await assert.rejects(agent.invoke("hello"), /database unavailable/);
   assert.equal(model.calls, 0);
   await agent.shutdown();
+});
+
+await test("the real Agent does not retry throttling and records a versioned safe error", async () => {
+  const model = new TestModel();
+  model.stream = async function* () {
+    this.calls++;
+    yield* [];
+    await Promise.resolve();
+    throw new ModelThrottledError("private-provider-body");
+  };
+  const events: { type: string; payload: Record<string, unknown> }[] = [];
+  const agent = createAgent({
+    runId: "throttled",
+    configuration,
+    model,
+    storage: memoryStorage(),
+    record: (type, payload) => {
+      events.push({ type, payload });
+      return Promise.resolve();
+    },
+  });
+  try {
+    await assert.rejects(agent.invoke("hello"), ModelThrottledError);
+    assert.equal(model.calls, 1);
+    const finished = events.find((event) => event.type === "model.finished");
+    assert.ok(finished);
+    assert.equal(finished.payload.v, 1);
+    assert.equal(finished.payload.attemptCount, 1);
+    assert.deepEqual(Object.keys(finished.payload).sort(), [
+      "attemptCount",
+      "error",
+      "stopReason",
+      "v",
+    ]);
+    assert.ok(!JSON.stringify(events).includes("private-provider-body"));
+  } finally {
+    await agent.shutdown();
+  }
 });

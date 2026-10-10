@@ -38,6 +38,10 @@
     "./migrate": {
       "types": "./dist/migrate.d.ts",
       "default": "./src/migrate.ts"
+    },
+    "./agent-service": {
+      "types": "./dist/agent-service.d.ts",
+      "default": "./src/agent-service.ts"
     }
   },
   "license": "MIT",

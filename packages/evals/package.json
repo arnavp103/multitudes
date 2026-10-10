@@ -16,7 +16,8 @@
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint --flag unstable_native_nodejs_ts_config",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
-    "test:unit": "node --import tsx --test test/*.test.ts"
+    "test:unit": "node --import tsx --test test/grading.test.ts test/judge.test.ts",
+    "test:integration": "node --import tsx --test test/integration.test.ts"
   },
   "dependencies": {
     "@multitudes/agent": "workspace:*",

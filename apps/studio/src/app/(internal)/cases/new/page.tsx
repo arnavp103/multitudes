@@ -72,6 +72,19 @@ export default async function NewCasePage({
               placeholder="One forbidden substring per line"
             />
           </label>
+          <label>
+            Task fixtures (JSON)
+            <Textarea
+              name="toolFixtures"
+              defaultValue="{}"
+              rows={5}
+              maxLength={100_000}
+            />
+            <span className="muted">
+              Map task UUIDs to status, attempts, and output. Missing IDs return
+              “Task not found”. Eval tools never read production tasks.
+            </span>
+          </label>
           <fieldset className="max-h-none! space-y-4">
             <legend>LLM judge (optional)</legend>
             <label>

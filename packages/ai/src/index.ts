@@ -6,6 +6,7 @@ import type {
   StreamOptions,
   Usage,
 } from "@strands-agents/sdk";
+import type { GoogleModelConfig } from "@strands-agents/sdk/models/google";
 import { context, metrics, SpanStatusCode, trace } from "@opentelemetry/api";
 import { Model } from "@strands-agents/sdk";
 import { GoogleModel } from "@strands-agents/sdk/models/google";
@@ -35,6 +36,7 @@ export function createModel(
   identity: ModelIdentity,
   call: CallContext,
   store?: UsageStore,
+  params: GoogleModelConfig["params"] = {},
 ) {
   if (identity.provider !== "gemini") {
     throw new Error(
@@ -43,7 +45,7 @@ export function createModel(
   }
   const delegate = new GoogleModel({
     modelId: identity.modelId,
-    maxTokens: 4096,
+    params: { ...params, maxOutputTokens: 4096 },
     apiKey: process.env.GEMINI_API_KEY,
     clientConfig: {
       vertexai: false,

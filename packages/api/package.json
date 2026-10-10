@@ -6,10 +6,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
-    },
-    "./agent-service": {
-      "types": "./dist/agent-service.d.ts",
-      "default": "./src/agent-service.ts"
     }
   },
   "license": "MIT",
@@ -25,7 +21,6 @@
     "@multitudes/auth": "workspace:*",
     "@multitudes/db": "workspace:*",
     "@multitudes/observability": "workspace:*",
-    "@multitudes/validators": "workspace:*",
     "@trpc/server": "catalog:",
     "superjson": "^2.2.6",
     "zod": "catalog:"

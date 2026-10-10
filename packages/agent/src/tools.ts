@@ -4,7 +4,7 @@ import { z } from "zod/v4";
 import {
   getAgentCapabilities,
   getTaskStatus,
-} from "@multitudes/api/agent-service";
+} from "@multitudes/db/agent-service";
 import { withSpan } from "@multitudes/observability/context";
 
 /** Capability allowlist. Tool arguments cannot choose their identity or bypass service authorization. */
