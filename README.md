@@ -23,17 +23,11 @@ The steps below configure an existing database instead.
    pnpm install
    ```
 
-2. Create the environment files from the commented template:
+2. Get access to the environment files. `.env`, `.env.staging`, and `.env.production` are committed, encrypted with [dotenvx](https://dotenvx.com); there is no template to copy. Ask a maintainer for the matching private keys and keep them in the ignored `.env.keys` file (or export them as `DOTENV_PRIVATE_KEY`, `DOTENV_PRIVATE_KEY_STAGING`, and `DOTENV_PRIVATE_KEY_PRODUCTION`).
 
-   ```sh
-   cp .env.example .env
-   cp .env.example .env.staging
-   cp .env.example .env.production
-   ```
+   Change a value with `pnpm exec dotenvx set <KEY> <value> -f <file>`, which encrypts it in place; remove an unused key by deleting its line. The apps read `POSTGRES_URL`, `AUTH_SECRET` (32+ characters; generate with `openssl rand -base64 32`), `WEBAPP_URL`, `STUDIO_URL`, `GEMINI_API_KEY`, and `AGENT_CODE_VERSION`, plus optional `AGENT_MODEL_ID`, `LOG_LEVEL`, `WORKER_CONCURRENCY`, `PORT`, and standard `OTEL_*` settings.
 
-   Uncomment and set `POSTGRES_URL` to your Postgres connection string, along with `AUTH_SECRET`. Generate an auth secret with `openssl rand -base64 32`.
-
-   Run commands with a selected environment file using `pnpm exec dotenvx run -f .env.staging -- <command>` or `pnpm exec dotenvx run -f .env.production -- <command>`. Encrypt files before committing them with `pnpm exec dotenvx encrypt -f .env.staging -f .env.production`; keep `.env.keys*` private and provide the matching `DOTENV_PRIVATE_KEY_*` values to deployment environments.
+   Run commands with a selected environment file using `pnpm exec dotenvx run -f .env.staging -- <command>` or `pnpm exec dotenvx run -f .env.production -- <command>`. Provide the matching `DOTENV_PRIVATE_KEY_*` values to deployment environments and never commit `.env.keys*`.
 
    The pre-commit hook blocks unencrypted dotenv files and scans staged changes with Gitleaks. Install Gitleaks locally with `go install github.com/zricethezav/gitleaks/v8@v8.30.1`.
 
