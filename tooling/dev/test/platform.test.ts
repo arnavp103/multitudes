@@ -135,15 +135,15 @@ test("product users sign up, sign out, and sign back in with a password", async 
   ).toBeVisible();
   await expect(page.getByText("Nothing to configure yet")).toBeVisible();
   await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
   await page.goto(`${webUrl}/settings`);
   await expect(page).toHaveURL(`${webUrl}/sign-in`);
   await page.goto(webUrl);
-  await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
   await page.getByRole("link", { name: "Sign in" }).click();
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("not the password");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("alert")).toContainText(/invalid/i);
+  await expect(page.getByText("Invalid email or password")).toBeVisible();
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(`${webUrl}/`);
