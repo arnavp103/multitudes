@@ -11,7 +11,8 @@ A pnpm and Turborepo workspace for a Next.js application and shared TypeScript p
 ## Getting started
 
 For the isolated local stack, install dependencies and run `pnpm dev:up`
-(Docker Compose v2 required). In another terminal, run `pnpm dev:login studio admin`.
+(Docker Compose v2 required). It also starts Grafana LGTM for local traces, logs
+and metrics. In another terminal, run `pnpm dev:login studio admin`.
 See [local development](docs/development.md) for fixtures and browser testing.
 The steps below configure an existing database and OAuth provider instead.
 

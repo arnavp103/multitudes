@@ -1,3 +1,6 @@
+# Receipt-check template. `pnpm dev:up` exports to Grafana LGTM's own collector
+# instead; for Grafana Cloud or self-hosted Grafana, replace `debug` with an
+# authenticated otlphttp exporter (docs/agent-platform.md#deployed-telemetry-grafana).
 receivers:
   otlp:
     protocols:
