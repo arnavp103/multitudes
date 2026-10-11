@@ -1,0 +1,214 @@
+/*
+ * D1 Cyanotype: chart paper by day, blueprint by night.
+ * Linework instead of shadows, registration ticks on panels, Bezier
+ * construction curves with their control handles in the margin, and
+ * handwritten margin notes as the personality.
+ */
+:root:not([data-direction]),
+:root[data-direction="d1"] {
+  --tc-paper: oklch(0.975 0.011 215);
+  --tc-surface: oklch(0.99 0.006 215);
+  --tc-raised: oklch(0.995 0.004 215);
+  --tc-sunken: oklch(0.952 0.014 215);
+  --tc-field: oklch(0.995 0.004 215);
+  --tc-ink: oklch(0.3 0.08 256);
+  --tc-ink-muted: oklch(0.5 0.055 250);
+  --tc-line: oklch(0.3 0.08 256 / 0.18);
+  --tc-line-strong: oklch(0.3 0.08 256 / 0.42);
+  --tc-outline: var(--tc-line-strong);
+  --tc-grid: oklch(0.62 0.1 220 / 0.13);
+  --tc-grid-major: oklch(0.62 0.1 220 / 0.24);
+
+  --tc-font-body: var(--font-archivo), ui-sans-serif, sans-serif;
+  --tc-font-display: var(--font-archivo), ui-sans-serif, sans-serif;
+  --tc-font-data: var(--font-martian-mono), ui-monospace, monospace;
+  --tc-font-note: var(--font-architects-daughter), cursive;
+  --tc-font-readout: var(--font-martian-mono), ui-monospace, monospace;
+  --tc-display-weight: 640;
+  --tc-display-tracking: -0.005em;
+  --tc-display-variation: "wdth" 70;
+  --tc-data-variation: "wdth" 85;
+  --tc-readout-variation: "wdth" 75;
+
+  --tc-radius-control: 2px;
+  --tc-radius-panel: 2px;
+  --tc-radius-sheet: 3px;
+  --tc-radius-badge: 1px;
+
+  --tc-panel-pad: 1rem;
+  --tc-panel-gap: 0.875rem;
+  --tc-cell-h: 2.25rem;
+  --tc-header-h: 3rem;
+  --tc-page-py: 1.75rem;
+
+  --tc-shadow-color: oklch(0.3 0.08 256 / 0.2);
+  --tc-elevation-1: 0 0 #0000;
+  --tc-elevation-2:
+    0 0 0 1px var(--tc-line-strong), 0 16px 32px -20px var(--tc-shadow-color);
+  --tc-elevation-3:
+    0 0 0 1px var(--tc-line-strong), 0 24px 48px -24px var(--tc-shadow-color);
+
+  --tc-glass-alpha: 93%;
+  --tc-glass-blur: 1.5px;
+  --tc-chrome-alpha: 88%;
+
+  --tc-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --tc-ease-enter: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --tc-duration-quick: 140ms;
+  --tc-duration-scene: 1400ms;
+  --tc-enter-transform: none;
+  --tc-enter-filter: none;
+  --tc-enter-animation: tc-wipe-y;
+}
+
+:root[data-direction="d1"].dark,
+:root:not([data-direction]).dark {
+  --tc-paper: oklch(0.3 0.088 258);
+  --tc-surface: oklch(0.325 0.088 258);
+  --tc-raised: oklch(0.35 0.088 258);
+  --tc-sunken: oklch(0.27 0.082 258);
+  --tc-field: oklch(0.27 0.082 258);
+  --tc-ink: oklch(0.97 0.015 230);
+  --tc-ink-muted: oklch(0.84 0.04 235);
+  --tc-line: oklch(0.97 0.015 230 / 0.2);
+  --tc-line-strong: oklch(0.97 0.015 230 / 0.46);
+  --tc-grid: oklch(0.95 0.03 230 / 0.07);
+  --tc-grid-major: oklch(0.95 0.03 230 / 0.14);
+  --tc-primary: oklch(0.97 0.015 230);
+  --tc-primary-ink: oklch(0.3 0.088 258);
+  --tc-shadow-color: oklch(0.12 0.06 258 / 0.5);
+  --tc-positive: oklch(0.84 0.13 160);
+  --tc-caution: oklch(0.86 0.13 85);
+  --tc-critical: oklch(0.76 0.15 25);
+}
+
+/* Component treatments are unlayered so they win over Tailwind utilities. */
+/* Chart paper: 8px minor grid, 40px major grid, fixed to the viewport */
+[data-direction="d1"] [data-slot="tachyon-backdrop"] {
+  background-image:
+    linear-gradient(var(--tc-grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--tc-grid-major) 1px, transparent 1px),
+    linear-gradient(var(--tc-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--tc-grid) 1px, transparent 1px);
+  background-size:
+    40px 40px,
+    40px 40px,
+    8px 8px,
+    8px 8px;
+  background-position: -1px -1px;
+}
+
+/* Panels are sheets with registration ticks at each corner */
+[data-direction="d1"] [data-slot="card"],
+[data-direction="d1"] [data-slot="agent-chat"],
+[data-direction="d1"] .panel {
+  --tick: var(--tc-ink);
+  border-color: var(--tc-line-strong);
+  background-image:
+    linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick));
+  background-repeat: no-repeat;
+  background-size:
+    9px 1.5px,
+    1.5px 9px,
+    9px 1.5px,
+    1.5px 9px,
+    9px 1.5px,
+    1.5px 9px,
+    9px 1.5px,
+    1.5px 9px;
+  background-position:
+    top left,
+    top left,
+    top right,
+    top right,
+    bottom left,
+    bottom left,
+    bottom right,
+    bottom right;
+}
+[data-direction="d1"] [data-slot="card-header"].border-b,
+[data-direction="d1"] [data-slot="card-footer"].border-t {
+  border-style: dashed;
+}
+
+[data-direction="d1"] [data-slot="button"][data-variant="outline"],
+[data-direction="d1"] [data-slot="input"],
+[data-direction="d1"] [data-slot="textarea"] {
+  border-color: var(--tc-line-strong);
+}
+[data-direction="d1"] [data-slot="button"][data-variant="default"]:hover {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    oklch(1 0 0 / 0.14) 0 1px,
+    transparent 1px 5px
+  );
+}
+
+[data-direction="d1"] [data-slot="table-row"] {
+  border-bottom-style: dashed;
+}
+[data-direction="d1"] [data-slot="table-header"] [data-slot="table-row"] {
+  border-bottom: 1.5px solid var(--tc-ink);
+}
+
+/* Active navigation: a highlighter swipe, slightly off-axis like a real one */
+[data-direction="d1"] [data-slot="shell-nav-item"][data-active="true"] {
+  background: transparent;
+  color: var(--tc-ink);
+}
+[data-direction="d1"] [data-slot="shell-nav-item"]::before {
+  content: "";
+  position: absolute;
+  inset: 22% -2px 18% 4px;
+  z-index: -1;
+  border-radius: 2px 6px 3px 8px;
+  background: color-mix(in oklab, var(--tachyon-flare) 70%, transparent);
+  transform: rotate(-0.8deg) scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--tc-duration-base) var(--tc-ease-standard);
+}
+[data-direction="d1"] [data-slot="shell-nav-item"][data-active="true"]::before {
+  transform: rotate(-0.8deg) scaleX(1);
+}
+[data-direction="d1"].dark [data-slot="shell-nav-item"][data-active="true"] {
+  color: var(--tachyon-flare-ink);
+}
+
+[data-direction="d1"] [data-slot="shell-sidebar"] {
+  border-right: 3px double var(--tc-line-strong);
+}
+[data-direction="d1"] [data-slot="shell-header"] {
+  border-bottom-color: var(--tc-line-strong);
+}
+
+/* Eyebrows become a leader line into a sheet reference */
+[data-direction="d1"] .eyebrow {
+  padding-left: 2rem;
+  color: var(--tc-ink-muted);
+  background: linear-gradient(currentColor, currentColor) left center / 1.5rem
+    1px no-repeat;
+}
+
+[data-direction="d1"] .status {
+  border-radius: 1px;
+  border-width: 1.5px;
+  border-color: currentColor;
+  font-family: var(--tc-font-data);
+  font-variation-settings: var(--tc-data-variation);
+  font-size: 0.6875rem;
+}
+
+[data-direction="d1"] [data-slot="metric-value"] {
+  letter-spacing: -0.03em;
+}
+
+[data-direction="d1"].dark [data-slot="shell-nav-item"]::before {
+  background: var(--tachyon-flare);
+}

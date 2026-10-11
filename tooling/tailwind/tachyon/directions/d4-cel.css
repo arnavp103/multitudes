@@ -1,0 +1,185 @@
+/*
+ * D4 Cel: cel-shaded, lived-in modernism.
+ * Flat fills with hard, hue-shifted shade plates instead of blurred shadows,
+ * two-tone buttons with a hard highlight band, an ink outline, Recursive's
+ * casual axis for headings and scrawls, and drifting cel-shaded Bezier
+ * ribbons in the background.
+ */
+:root[data-direction="d4"] {
+  --tc-paper: oklch(0.966 0.009 245);
+  --tc-surface: oklch(0.995 0.003 245);
+  --tc-raised: oklch(0.998 0.002 245);
+  --tc-sunken: oklch(0.938 0.013 245);
+  --tc-field: oklch(0.998 0.002 245);
+  --tc-ink: oklch(0.23 0.04 265);
+  --tc-ink-muted: oklch(0.47 0.035 262);
+  --tc-line: oklch(0.23 0.04 265 / 0.14);
+  --tc-line-strong: oklch(0.23 0.04 265 / 0.32);
+  --tc-outline: oklch(0.23 0.04 265);
+  --tc-shade: oklch(0.82 0.055 275);
+
+  --tc-font-body: var(--font-recursive), ui-sans-serif, sans-serif;
+  --tc-font-display: var(--font-recursive), ui-sans-serif, sans-serif;
+  --tc-font-data: var(--font-recursive), ui-monospace, monospace;
+  --tc-font-note: var(--font-recursive), cursive;
+  --tc-font-readout: var(--font-recursive), ui-sans-serif, sans-serif;
+  --tc-body-variation: "CASL" 0, "MONO" 0;
+  --tc-display-variation: "CASL" 1, "MONO" 0;
+  --tc-display-weight: 760;
+  --tc-display-tracking: -0.02em;
+  --tc-data-variation: "CASL" 0, "MONO" 1;
+  --tc-note-variation: "CASL" 1, "MONO" 0, "slnt" -12, "CRSV" 1;
+  --tc-readout-variation: "CASL" 1, "MONO" 0;
+  --tc-readout-weight: 800;
+
+  --tc-radius-control: 0.5rem;
+  --tc-radius-panel: 0.875rem;
+  --tc-radius-sheet: 1.25rem;
+  --tc-radius-badge: 0.375rem;
+
+  --tc-elevation-1: 3px 3px 0 var(--tc-shade);
+  --tc-elevation-2: 5px 5px 0 var(--tc-shade);
+  --tc-elevation-3: 8px 8px 0 var(--tc-shade);
+
+  --tc-glass-alpha: 100%;
+  --tc-glass-blur: 0px;
+  --tc-chrome-alpha: 92%;
+
+  --tc-ease-standard: cubic-bezier(0.3, 0, 0.2, 1);
+  --tc-ease-enter: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --tc-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --tc-duration-quick: 160ms;
+  --tc-duration-base: 260ms;
+  --tc-duration-scene: 640ms;
+  --tc-stagger: 55ms;
+  --tc-enter-transform: translateY(12px) scale(0.98);
+  --tc-enter-filter: none;
+  --tc-enter-animation: tc-enter;
+}
+
+:root[data-direction="d4"].dark {
+  --tc-paper: oklch(0.215 0.028 264);
+  --tc-surface: oklch(0.275 0.032 264);
+  --tc-raised: oklch(0.3 0.034 264);
+  --tc-sunken: oklch(0.24 0.03 264);
+  --tc-field: oklch(0.24 0.03 264);
+  --tc-ink: oklch(0.95 0.012 250);
+  --tc-ink-muted: oklch(0.76 0.03 255);
+  --tc-line: oklch(0.95 0.012 250 / 0.12);
+  --tc-line-strong: oklch(0.95 0.012 250 / 0.26);
+  --tc-outline: oklch(0.1 0.02 265);
+  --tc-shade: oklch(0.13 0.035 272);
+  --tc-positive: oklch(0.8 0.14 155);
+  --tc-caution: oklch(0.85 0.14 85);
+  --tc-critical: oklch(0.72 0.17 22);
+}
+
+/* Component treatments are unlayered so they win over Tailwind utilities. */
+[data-direction="d4"] [data-slot="card"],
+[data-direction="d4"] .panel,
+[data-direction="d4"] [data-slot="agent-chat"] {
+  border: 1.5px solid var(--tc-outline);
+  box-shadow:
+    inset 2px 2px 0 oklch(1 0 0 / 0.55),
+    var(--tc-elevation-1);
+}
+[data-direction="d4"].dark [data-slot="card"],
+[data-direction="d4"].dark .panel,
+[data-direction="d4"].dark [data-slot="agent-chat"] {
+  box-shadow:
+    inset 2px 2px 0 oklch(1 0 0 / 0.06),
+    var(--tc-elevation-1);
+}
+
+/* Two-tone cel buttons: hard highlight band on top, press sinks into the shade */
+[data-direction="d4"]
+  [data-slot="button"]:not([data-variant="ghost"], [data-variant="link"]) {
+  border: 1.5px solid var(--tc-outline);
+  box-shadow: 2px 2px 0 var(--tc-outline);
+  transition:
+    translate var(--tc-duration-instant) var(--tc-ease-standard),
+    box-shadow var(--tc-duration-instant) var(--tc-ease-standard),
+    background-color var(--tc-duration-quick);
+}
+[data-direction="d4"] [data-slot="button"][data-variant="default"] {
+  background-image: linear-gradient(
+    180deg,
+    oklch(1 0 0 / 0.22) 0 42%,
+    transparent 42%
+  );
+}
+[data-direction="d4"]
+  [data-slot="button"]:not(
+    [data-variant="ghost"],
+    [data-variant="link"]
+  ):active {
+  translate: 2px 2px;
+  box-shadow: 0 0 0 var(--tc-outline);
+}
+
+[data-direction="d4"] [data-slot="input"],
+[data-direction="d4"] [data-slot="textarea"]:not([data-slot="composer"] *),
+[data-direction="d4"] [data-slot="composer"] {
+  border-width: 1.5px;
+  border-color: var(--tc-outline);
+  box-shadow: inset 2px 2px 0 var(--tc-line);
+}
+
+[data-direction="d4"] [data-slot="badge"] {
+  border: 1.5px solid var(--tc-outline);
+}
+
+[data-direction="d4"] [data-slot="shell-sidebar"] {
+  border-right: 1.5px solid var(--tc-outline);
+}
+[data-direction="d4"] [data-slot="shell-header"] {
+  border-bottom: 1.5px solid var(--tc-outline);
+}
+
+/* Active nav: a hand-drawn scribble underline in flare */
+[data-direction="d4"] [data-slot="shell-nav-item"][data-active="true"] {
+  background: transparent;
+  font-weight: 600;
+}
+[data-direction="d4"] [data-slot="shell-nav-item"]::before {
+  content: "";
+  position: absolute;
+  left: 2.25rem;
+  right: 1rem;
+  bottom: 0.15rem;
+  height: 0.6rem;
+  z-index: -1;
+  background: var(--tachyon-flare);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12' preserveAspectRatio='none'%3E%3Cpath d='M2 8 C 20 3, 38 10, 58 6 S 96 2, 118 7' fill='none' stroke='black' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E")
+    no-repeat center / 100% 100%;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path var(--tc-duration-slow) var(--tc-ease-standard);
+}
+[data-direction="d4"] [data-slot="shell-nav-item"][data-active="true"]::before {
+  clip-path: inset(0 0 0 0);
+}
+
+[data-direction="d4"] .eyebrow {
+  font-family: var(--tc-font-note);
+  font-variation-settings: var(--tc-note-variation);
+  color: var(--tachyon-signal);
+  font-size: 0.875rem;
+  rotate: -1.5deg;
+  transform-origin: left;
+  width: fit-content;
+}
+
+[data-direction="d4"] .status {
+  border: 1.5px solid var(--tc-outline);
+  border-radius: 0.375rem;
+  color: var(--tc-ink);
+  background: color-mix(
+    in oklab,
+    var(--status-color, var(--tc-sunken)) 35%,
+    var(--tc-surface)
+  );
+}
+
+[data-direction="d4"] [data-slot="table-header"] [data-slot="table-row"] {
+  border-bottom: 1.5px solid var(--tc-outline);
+}

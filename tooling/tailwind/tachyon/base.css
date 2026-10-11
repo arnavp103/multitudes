@@ -1,0 +1,242 @@
+/*
+ * Tachyon base: element defaults, type-role utilities, the backdrop layer,
+ * and the single orchestrated page-load entrance. Everything reads tokens.
+ */
+@layer base {
+  html {
+    font-family: var(--tc-font-body);
+    font-variation-settings: var(--tc-body-variation);
+    font-feature-settings: "kern", "calt";
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background-color: var(--tc-paper);
+    color: var(--tc-ink);
+  }
+  h1,
+  h2,
+  h3,
+  [data-slot="card-title"],
+  [data-slot="dialog-title"],
+  [data-slot="sheet-title"] {
+    font-family: var(--tc-font-display);
+    font-variation-settings: var(--tc-display-variation);
+    letter-spacing: var(--tc-display-tracking);
+  }
+  h1 {
+    font-weight: var(--tc-display-weight);
+  }
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--tc-font-data);
+    font-variation-settings: var(--tc-data-variation);
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--tachyon-flare) 60%, transparent);
+    color: inherit;
+  }
+}
+
+@utility type-display {
+  font-family: var(--tc-font-display);
+  font-weight: var(--tc-display-weight);
+  letter-spacing: var(--tc-display-tracking);
+  font-variation-settings: var(--tc-display-variation);
+}
+@utility type-data {
+  font-family: var(--tc-font-data);
+  font-variation-settings: var(--tc-data-variation);
+  font-variant-numeric: tabular-nums;
+}
+@utility type-note {
+  font-family: var(--tc-font-note);
+  font-variation-settings: var(--tc-note-variation);
+}
+@utility type-readout {
+  font-family: var(--tc-font-readout);
+  font-weight: var(--tc-readout-weight);
+  font-variation-settings: var(--tc-readout-variation);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+@utility glass {
+  background-color: color-mix(
+    in oklch,
+    var(--tc-surface) var(--tc-glass-alpha),
+    transparent
+  );
+  backdrop-filter: blur(var(--tc-glass-blur)) saturate(1.2);
+}
+
+/* The backdrop is a fixed layer behind the app; each direction shows one child */
+@layer components {
+  [data-slot="tachyon-backdrop"] {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: var(--tc-backdrop-opacity);
+  }
+  [data-backdrop] {
+    display: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  :root:not([data-direction]) [data-backdrop="d1"],
+  [data-direction="d1"] [data-backdrop="d1"],
+  [data-direction="d2"] [data-backdrop="d2"],
+  [data-direction="d3"] [data-backdrop="d3"],
+  [data-direction="d4"] [data-backdrop="d4"] {
+    display: block;
+  }
+  [data-backdrop] .tc-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: tc-draw 2.6s var(--tc-ease-standard) 0.2s forwards;
+  }
+  [data-backdrop] .tc-draw:nth-of-type(2n) {
+    animation-delay: 0.7s;
+  }
+  [data-backdrop] .tc-fade {
+    opacity: 0;
+    animation: tc-fade 0.6s var(--tc-ease-standard) 1.8s forwards;
+  }
+  [data-backdrop] .tc-orbit {
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+    animation: tc-spin 240s linear infinite;
+  }
+  [data-backdrop] .tc-orbit-reverse {
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+    animation: tc-spin 360s linear infinite reverse;
+  }
+  [data-backdrop] .tc-drift {
+    animation: tc-drift 28s ease-in-out infinite alternate;
+  }
+  [data-backdrop] .tc-drift-slow {
+    animation: tc-drift 44s ease-in-out infinite alternate-reverse;
+  }
+
+  /* One orchestrated entrance: page sections arrive in reading order */
+  [data-slot="shell-content"] > * > *,
+  .tc-stagger > * {
+    animation-name: var(--tc-enter-animation, tc-enter);
+    animation-duration: var(--tc-duration-scene);
+    animation-timing-function: var(--tc-ease-enter);
+    animation-fill-mode: backwards;
+    animation-delay: calc(var(--tc-i, 0) * var(--tc-stagger));
+  }
+  :is([data-slot="shell-content"] > *, .tc-stagger) > :nth-child(2) {
+    --tc-i: 1;
+  }
+  :is([data-slot="shell-content"] > *, .tc-stagger) > :nth-child(3) {
+    --tc-i: 2;
+  }
+  :is([data-slot="shell-content"] > *, .tc-stagger) > :nth-child(4) {
+    --tc-i: 3;
+  }
+  :is([data-slot="shell-content"] > *, .tc-stagger) > :nth-child(5) {
+    --tc-i: 4;
+  }
+  :is([data-slot="shell-content"] > *, .tc-stagger) > :nth-child(6) {
+    --tc-i: 5;
+  }
+  :is([data-slot="shell-content"] > *, .tc-stagger) > :nth-child(n + 7) {
+    --tc-i: 6;
+  }
+}
+
+@keyframes tc-enter {
+  from {
+    opacity: 0;
+    transform: var(--tc-enter-transform);
+    filter: var(--tc-enter-filter);
+  }
+}
+@keyframes tc-wipe-x {
+  from {
+    mask-image: linear-gradient(90deg, #000 50%, transparent 50%);
+    mask-size: 200% 100%;
+    mask-position: 100% 0;
+  }
+  to {
+    mask-image: linear-gradient(90deg, #000 50%, transparent 50%);
+    mask-size: 200% 100%;
+    mask-position: 0 0;
+  }
+}
+@keyframes tc-wipe-y {
+  from {
+    mask-image: linear-gradient(180deg, #000 50%, transparent 50%);
+    mask-size: 100% 200%;
+    mask-position: 0 100%;
+  }
+  to {
+    mask-image: linear-gradient(180deg, #000 50%, transparent 50%);
+    mask-size: 100% 200%;
+    mask-position: 0 0;
+  }
+}
+@keyframes tc-flicker {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.7;
+  }
+  40% {
+    opacity: 0.2;
+  }
+  60%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes tc-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes tc-fade {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes tc-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes tc-drift {
+  from {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  to {
+    translate: -3vw 2vh;
+    rotate: -2deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-backdrop] .tc-draw {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  [data-backdrop] .tc-fade {
+    animation: none;
+    opacity: 1;
+  }
+  [data-backdrop] .tc-orbit,
+  [data-backdrop] .tc-orbit-reverse,
+  [data-backdrop] .tc-drift,
+  [data-backdrop] .tc-drift-slow {
+    animation: none;
+  }
+}
