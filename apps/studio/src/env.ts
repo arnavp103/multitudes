@@ -16,6 +16,18 @@ export function readStudioEnv() {
     .parse(process.env);
 }
 
+/**
+ * Optional base URL of the Grafana instance holding application performance data
+ * (traces, logs, latency and error metrics). Studio links to it only when set.
+ */
+export function readGrafanaUrl() {
+  const url = z
+    .url({ protocol: /^https?$/ })
+    .optional()
+    .parse(process.env.GRAFANA_URL || undefined);
+  return url?.replace(/\/+$/, "");
+}
+
 /** Next initializes telemetry only in the Node server runtime. */
 export function isNodeRuntime() {
   return process.env.NEXT_RUNTIME === "nodejs";

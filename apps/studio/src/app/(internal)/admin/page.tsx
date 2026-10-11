@@ -1,9 +1,17 @@
 import Link from "next/link";
 
-import { getDashboard } from "@multitudes/db/dashboard";
+import type { DashboardDays } from "@multitudes/db/dashboard";
+import {
+  getDashboard,
+  getEvalSeries,
+  getUsageSeries,
+} from "@multitudes/db/dashboard";
 import { Badge } from "@multitudes/ui/badge";
 import { buttonVariants } from "@multitudes/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@multitudes/ui/card";
+import { formatValue } from "@multitudes/ui/charts/data";
+import { StackedBarChart } from "@multitudes/ui/charts/stacked-bar-chart";
+import { TimeSeriesChart } from "@multitudes/ui/charts/time-series-chart";
 import {
   Table,
   TableBody,
@@ -13,7 +21,9 @@ import {
   TableRow,
 } from "@multitudes/ui/table";
 
+import { readGrafanaUrl } from "~/env";
 import { requireStaff } from "~/server/access";
+import { evalCharts, usageCharts } from "./series";
 
 const usd = (value: number | null | undefined) =>
   value == null
@@ -25,8 +35,26 @@ const usd = (value: number | null | undefined) =>
       }).format(value);
 const rate = (passed: number, total: number) =>
   total ? `${((100 * passed) / total).toFixed(1)}%` : "—";
+const WINDOWS: DashboardDays[] = [1, 7, 30];
 
-/** Internal operational view. Durable DB records remain visible even when traces are sampled. */
+/**
+ * Grafana entry points for application performance. Paths are the Grafana
+ * Drilldown apps bundled with grafana/otel-lgtm and Grafana Cloud.
+ */
+const grafanaLinks = (base: string) => [
+  { label: "Traces", href: `${base}/a/grafana-exploretraces-app/explore` },
+  { label: "Logs", href: `${base}/a/grafana-lokiexplore-app/explore` },
+  {
+    label: "Metrics",
+    href: `${base}/a/grafana-metricsdrilldown-app/drilldown`,
+  },
+];
+
+/**
+ * Product metrics from the durable Postgres ledger: cost, tokens, and eval
+ * quality by model and purpose. Application performance (latency, errors,
+ * traces, logs) lives in Grafana, linked when GRAFANA_URL is configured.
+ */
 export default async function AdminPage({
   searchParams,
 }: {
@@ -34,16 +62,29 @@ export default async function AdminPage({
 }) {
   await requireStaff();
   const params = await searchParams;
-  const days = params.days === "1" ? 1 : params.days === "30" ? 30 : 7;
-  const data = await getDashboard(days);
+  const days = WINDOWS.find((value) => String(value) === params.days) ?? 7;
+  const now = new Date();
+  const [data, usage, evals] = await Promise.all([
+    getDashboard(days, now),
+    getUsageSeries(days, now),
+    getEvalSeries(days, now),
+  ]);
+  const { buckets, granularity } = usage.window;
+  const cost = usageCharts(buckets, usage.rows);
+  const quality = evalCharts(buckets, evals.rows);
+  const grafana = readGrafanaUrl();
   const completed = Number(data.runs?.completed ?? 0);
   const failed = Number(data.runs?.failed ?? 0);
   const graded = Number(data.evals?.graded ?? 0);
+  const period =
+    granularity === "hour"
+      ? "Hourly, last 24 hours (UTC)"
+      : `Daily, last ${days} days (UTC)`;
   const metrics = [
     [
       "Recorded model cost",
       usd(data.calls?.cost),
-      `${data.calls?.total ?? 0} calls · agent + judge`,
+      `${data.calls?.total ?? 0} calls · ${formatValue("tokens", data.calls?.tokens ?? 0)} tokens · agent + judge`,
     ],
     [
       "Execution success",
@@ -63,7 +104,7 @@ export default async function AdminPage({
       "Terminal runs · includes queue and judging",
     ],
   ];
-  const max = Math.max(1, ...data.daily.map((item) => Number(item.calls)));
+  const common = { granularity, height: 220 } as const;
   return (
     <>
       <div className="section-title">
@@ -71,13 +112,14 @@ export default async function AdminPage({
           <p className="eyebrow">Operations / Admin</p>
           <h1>How your agents are doing</h1>
           <p className="muted">
-            Quality, reliability, and spending in one place.
+            Quality and spending from the durable run ledger.
           </p>
         </div>
         <nav aria-label="Reporting period" className="flex gap-2">
-          {[1, 7, 30].map((value) => (
+          {WINDOWS.map((value) => (
             <Link
               key={value}
+              aria-current={days === value ? "page" : undefined}
               className={buttonVariants({
                 variant: days === value ? "secondary" : "ghost",
                 size: "sm",
@@ -119,8 +161,52 @@ export default async function AdminPage({
           {data.calls?.stale ?? 0} unfinished calls older than 5m
         </Badge>
       </div>
-      <div className="grid items-start gap-6 xl:grid-cols-[1fr_320px]">
-        <Card>
+
+      <section aria-labelledby="cost-heading" className="mt-10">
+        <div className="section-title">
+          <h2 id="cost-heading">Cost &amp; tokens</h2>
+          <p className="muted">{period}</p>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <StackedBarChart
+            {...common}
+            title="Estimated cost by model"
+            description="Agent and judge calls, including retries. Unknown-rate calls show as — (a gap, not $0)."
+            data={cost.costByModel}
+            series={cost.models}
+            format="usd"
+            emptyMessage="No model calls in this window."
+          />
+          <StackedBarChart
+            {...common}
+            title="Estimated cost by purpose"
+            description="Agent runs versus LLM-judge grading."
+            data={cost.costByPurpose}
+            series={cost.purposes}
+            format="usd"
+            emptyMessage="No model calls in this window."
+          />
+          <TimeSeriesChart
+            {...common}
+            title="Tokens by model"
+            description="Provider-reported input, output and thinking tokens."
+            data={cost.tokensByModel}
+            series={cost.models}
+            format="tokens"
+            emptyMessage="No reported token usage in this window."
+          />
+          <TimeSeriesChart
+            {...common}
+            variant="area"
+            title="Tokens by purpose"
+            description="Where token volume goes: answering or grading."
+            data={cost.tokensByPurpose}
+            series={cost.purposes}
+            format="tokens"
+            emptyMessage="No reported token usage in this window."
+          />
+        </div>
+        <Card className="mt-6">
           <CardHeader>
             <CardTitle>Model usage</CardTitle>
           </CardHeader>
@@ -163,60 +249,108 @@ export default async function AdminPage({
             )}
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Evaluation quality</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm">
-            <p>{data.evals?.judged ?? 0} LLM-judged results</p>
-            <p>
-              Mean judge score:{" "}
-              {data.evals?.judge_score == null
-                ? "—"
-                : data.evals.judge_score.toFixed(2)}
-            </p>
-            <p>{data.evals?.failed ?? 0} eval execution failures</p>
-            <p className="text-muted-foreground text-xs leading-5">
-              Pass rate counts graded runs only. Execution failures and pending
-              runs are shown separately. Judge scores are probabilistic;
-              calibrate rubrics against human-reviewed cases.
-            </p>
-            <Link
-              className={buttonVariants({ variant: "outline", size: "sm" })}
-              href="/experiments"
-            >
-              Review experiments
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Model calls by day · UTC</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {data.daily.map((day) => (
-            <div
-              key={day.day}
-              className="grid grid-cols-[90px_1fr_110px] items-center gap-4 text-xs"
-            >
-              <span className="text-muted-foreground">{day.day}</span>
-              <div className="bg-muted h-3 rounded">
-                <div
-                  className="bg-primary h-3 rounded"
-                  style={{ width: `${(Number(day.calls) / max) * 100}%` }}
-                />
+      </section>
+
+      <section aria-labelledby="eval-heading" className="mt-10">
+        <div className="section-title">
+          <h2 id="eval-heading">Eval quality</h2>
+          <p className="muted">{period} · by run creation time</p>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <TimeSeriesChart
+            {...common}
+            title="Pass rate by candidate model"
+            description="Graded eval runs that passed every assertion and judge. Gaps mean nothing was graded."
+            data={quality.passRate}
+            series={quality.candidates}
+            format="percent"
+            yDomain={[0, 1]}
+            empty={!quality.hasGraded}
+            emptyMessage="No graded eval runs in this window."
+          />
+          <TimeSeriesChart
+            {...common}
+            title="Mean judge score by judge model"
+            description="LLM-judge scores (0–1). Probabilistic: calibrate rubrics against human-reviewed cases."
+            data={quality.judgeScore}
+            series={quality.judges}
+            format="score"
+            yDomain={[0, 1]}
+            empty={!quality.judges.length}
+            emptyMessage="No judge verdicts in this window."
+          />
+          <StackedBarChart
+            {...common}
+            title="Eval outcomes"
+            description="Failed checks are graded runs that missed an assertion or judge threshold; execution failures never reached grading."
+            data={quality.outcomes}
+            series={quality.outcomeSeries}
+            format="count"
+            emptyMessage="No eval runs in this window."
+          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Evaluation summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <p>{data.evals?.judged ?? 0} LLM-judged results</p>
+              <p>
+                Mean judge score:{" "}
+                {data.evals?.judge_score == null
+                  ? "—"
+                  : data.evals.judge_score.toFixed(2)}
+              </p>
+              <p>{data.evals?.failed ?? 0} eval execution failures</p>
+              <p className="text-muted-foreground text-xs leading-5">
+                Pass rate counts graded runs only. Execution failures and
+                pending runs are shown separately. Judge cost appears under the
+                judge purpose above.
+              </p>
+              <Link
+                className={buttonVariants({ variant: "outline", size: "sm" })}
+                href="/experiments"
+              >
+                Review experiments
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {grafana && (
+        <section aria-labelledby="performance-heading" className="mt-10">
+          <Card>
+            <CardHeader>
+              <CardTitle id="performance-heading">
+                Application performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center justify-between gap-4">
+              <p className="text-muted-foreground max-w-2xl text-sm">
+                Request latency, errors, traces and logs from OpenTelemetry live
+                in Grafana. Search a trace by run ID or build SHA there.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {grafanaLinks(grafana).map((link) => (
+                  <a
+                    key={link.label}
+                    className={buttonVariants({
+                      variant: "outline",
+                      size: "sm",
+                    })}
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {link.label}
+                  </a>
+                ))}
               </div>
-              <span className="text-right">
-                {day.calls} · {usd(day.cost)}
-              </span>
-            </div>
-          ))}
-          {!data.daily.length && (
-            <p className="muted">No model calls in this window.</p>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
       <p className="text-muted-foreground mt-6 max-w-4xl text-xs leading-6">
         USD estimates use a rate snapshot captured at call start and
         provider-reported tokens, including cached input and thinking output
