@@ -112,12 +112,59 @@ same backend, or they will be duplicated. Use `LOG_LEVEL` for worker log verbosi
 `run_id`, trace IDs and span IDs belong on logs/spans, not metric labels. The queue
 payload carries W3C context so worker spans can continue the initiating trace.
 
-For local collection, run an OpenTelemetry Collector with
-`infra/observability/collector.yaml` mounted as its configuration and publish port 4318. The supplied debug exporter confirms receipt; it is not a persistent UI.
-Replace it with your chosen backend's exporter for searchable telemetry. Set
-`OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318`. No collector or database is
-deployed by this PR. With no collector running, telemetry export is best effort;
-agent state is independently persisted in Postgres.
+`pnpm dev:up` collects locally into Grafana LGTM (see
+[development.md](development.md#local-telemetry-grafana-lgtm)). For a bare
+receipt check without Grafana, run an OpenTelemetry Collector with
+`infra/observability/collector.yaml` mounted as its configuration, publish port
+4318 and set `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318`; its debug
+exporter prints what arrives. With no collector running, telemetry export is
+best effort; agent state is independently persisted in Postgres.
+
+### Deployed telemetry (Grafana)
+
+Product metrics (cost, tokens, eval quality) are read from Postgres by Studio's
+`/admin`. Application performance (latency, errors, traces, logs) belongs in
+Grafana. Nothing is provisioned by this repository; choose one of:
+
+- **Grafana Cloud.** In the stack's _OpenTelemetry_ connection tile, generate a
+  token and copy the OTLP gateway endpoint. For a single service the apps can
+  export straight to it:
+
+  ```sh
+  OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-gateway-prod-<region>.grafana.net/otlp
+  OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic <base64 instance-id:token>"
+  ```
+
+- **Self-hosted** Grafana with Tempo, Loki and Mimir/Prometheus (for example
+  the LGTM Helm charts), each accepting OTLP.
+
+For production, prefer a collector next to the apps: it batches, retries and
+memory-limits exports, can tail-sample or filter sensitive attributes, and keeps
+the backend credential out of application processes. Start from
+`infra/observability/collector.yaml` (OpenTelemetry Collector _contrib_
+distribution, for `basicauth`) and replace the `debug` exporter:
+
+```yaml
+extensions:
+  basicauth/grafana:
+    client_auth:
+      username: ${env:GRAFANA_OTLP_INSTANCE_ID}
+      password: ${env:GRAFANA_OTLP_TOKEN}
+exporters:
+  otlphttp/grafana:
+    endpoint: ${env:GRAFANA_OTLP_ENDPOINT}
+    auth:
+      authenticator: basicauth/grafana
+service:
+  extensions: [basicauth/grafana]
+  # ...and use [otlphttp/grafana] as each pipeline's exporter.
+```
+
+Point the apps at that collector with `OTEL_EXPORTER_OTLP_ENDPOINT`, and set
+`GRAFANA_URL` (for example `https://<stack>.grafana.net`) on Studio so `/admin`
+links to Traces, Logs and Metrics Drilldown. Studio hides the links when it is
+unset. Review the retention and access warnings below before exporting
+production content.
 
 Durable `run_event` rows capture full messages and semantic model/tool boundaries
 in app-owned `v: 1` envelopes, not token-by-token logs. Treat the ledger and session
@@ -235,8 +282,24 @@ charges without reported usage still need invoice reconciliation.
 
 `/admin` in studio aggregates 1/7/30-day windows: execution success, pending and
 retried runs, p95 queue-to-finish latency, eval pass rate, judge mean score, model
-usage by purpose, daily calls, estimates, and unknown-cost/unfinished-call counts.
+usage by purpose, estimates, and unknown-cost/unfinished-call counts. Charts show
+estimated cost and tokens by model and by purpose (agent vs judge), candidate
+pass rate by model, mean judge score by judge model, and eval outcomes over time.
+Windows align to whole UTC buckets (24 hourly buckets for 1d, otherwise daily),
+so cards, charts and tables cover the same rows. The bounded queries live in
+`@multitudes/db/dashboard` (`getDashboard`, `getUsageSeries`, `getEvalSeries`);
+rates are recomputed from sums, and buckets without graded runs are gaps, not 0%.
 It is protected by the same verified-account role checks as the rest of studio.
+When `GRAFANA_URL` is set, it also links to Grafana for application performance.
+
+Reusable visx charts live in `@multitudes/ui/charts/*`: `TimeSeriesChart`
+(line/area), `StackedBarChart`, shared frame/legend/tooltip, and pure helpers in
+`charts/data` (`pivotRows`, `keepTopSeries`, formatters). Pass plain data and a
+named `format`; server components cannot pass functions to these client charts.
+Colours come only from the theme's `--chart-1`…`--chart-5` custom properties, in
+a fixed slot order; more than five series fold into a neutral "Other". Each chart
+has a legend, hover/keyboard (arrow keys) readout, a visible data table, and
+explicit empty/loading states.
 
 Prices live in `packages/ai/src/pricing.ts`; snapshots are never retroactively
 rewritten. Verified 2026-10-10 against:

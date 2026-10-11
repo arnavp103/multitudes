@@ -6,10 +6,13 @@ shell), pnpm 10.34.6, and Docker Compose v2. Run `pnpm install`, then
 volume, allocates independent loopback ports, applies both migration journals,
 seeds demo data, and starts webapp, Studio, and the real worker. It prints the app
 URLs. Ctrl-C stops every process the command started, at any stage, before it
-exits; `pnpm dev:down` stops the database without deleting its volume. Every checkout has its own profile, ports, and database.
+exits; `pnpm dev:down` stops the database and telemetry containers without
+deleting their volumes. Every checkout has its own profile, ports, and database.
 
 Local credentials live only in ignored `.local/profile.json` (mode 0600). Do not
-copy this profile between machines/worktrees. The command uses its generated
+copy this profile between machines/worktrees. Profiles created before Grafana
+LGTM are given its `grafanaPort`/`otlpPort` on the next command, keeping every
+existing port and secret. The command uses its generated
 local database URL; it never seeds the production `POSTGRES_URL`. On Windows,
 run this workflow in WSL2 with Docker integration.
 
@@ -17,6 +20,31 @@ The default worker uses deterministic Google HTTP fixtures and makes no model
 API calls. Set `GEMINI_API_KEY` in the invoking shell to opt into live, billable
 Gemini calls. Auth and database secrets still remain local. The fixture is loaded
 by the dev/test runner, never by production worker configuration.
+
+## Local telemetry (Grafana LGTM)
+
+`pnpm dev:up` also starts `grafana/otel-lgtm` (Grafana, Tempo, Loki, Prometheus
+and an OpenTelemetry Collector in one container) and prints its URL next to the
+app URLs. Webapp, Studio and the worker run with the OpenTelemetry SDK enabled
+and export OTLP/HTTP straight to that container's collector, so traces, logs and
+metrics are queryable as soon as the apps start. Open **Drilldown → Traces** (or
+Logs/Metrics) in Grafana; Studio's `/admin` links there. Grafana allows anonymous
+admin access, so both ports bind to loopback only. Its data lives in the
+project's `lgtm` volume; `pnpm dev:down` keeps it.
+
+Apps export to LGTM directly rather than through `infra/observability/collector.yaml`:
+the image already contains a collector wired to its backends, and locally there
+is nothing to batch, sample, or authenticate in between. The collector file
+remains the starting point for deployed environments (see
+[agent-platform.md](agent-platform.md#deployed-telemetry-grafana)). Telemetry is
+best effort: if LGTM cannot start, dev:up warns and continues. Set
+`OTEL_SDK_DISABLED=true` to turn exporting off, or `OTEL_EXPORTER_OTLP_ENDPOINT`
+/ `GRAFANA_URL` in the invoking shell to use another backend.
+
+The admin dashboard seeds 30 days of local demo history (production and eval
+runs, agent/judge model calls, scores, cost gaps) on every `dev:up`. Its IDs are
+derived from the UTC day, so re-running tops up recent days without duplicates.
+Browser tests use only the minimal seed.
 
 ## Local sign-in without Discord
 

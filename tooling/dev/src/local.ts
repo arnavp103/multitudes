@@ -9,7 +9,7 @@ import { migrateDatabase } from "@multitudes/db/migrate";
 import { user } from "@multitudes/db/schema";
 
 import { freePort, interrupted, launch, root } from "./processes";
-import { seed } from "./seed";
+import { seed, seedDemoUsage } from "./seed";
 
 const profilePath = `${root}.local/profile.json`;
 const profileSchema = z.object({
@@ -18,6 +18,9 @@ const profileSchema = z.object({
   webPort: z.number().int(),
   studioPort: z.number().int(),
   workerPort: z.number().int(),
+  // Added with Grafana LGTM; older profiles lack them and are backfilled below.
+  grafanaPort: z.number().int().optional(),
+  otlpPort: z.number().int().optional(),
   password: z.string().min(32),
   secret: z.string().min(32),
 });
@@ -42,9 +45,20 @@ try {
     password: randomBytes(24).toString("hex"),
     secret: randomBytes(32).toString("hex"),
   };
+}
+const telemetryPorts = {
+  grafanaPort: profile.grafanaPort ?? (await freePort()),
+  otlpPort: profile.otlpPort ?? (await freePort()),
+};
+if (
+  profile.grafanaPort !== telemetryPorts.grafanaPort ||
+  profile.otlpPort !== telemetryPorts.otlpPort
+) {
+  profile = { ...profile, ...telemetryPorts };
   await mkdir(`${root}.local`, { recursive: true });
   await writeFile(profilePath, JSON.stringify(profile), { mode: 0o600 });
 }
+const grafanaUrl = `http://localhost:${telemetryPorts.grafanaPort}`;
 const env: NodeJS.ProcessEnv = {
   ...process.env,
   NODE_ENV: "development",
@@ -58,7 +72,12 @@ const env: NodeJS.ProcessEnv = {
   AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET ?? "local-fixture",
   AGENT_CODE_VERSION: "local",
   PORT: String(profile.workerPort),
-  OTEL_SDK_DISABLED: process.env.OTEL_EXPORTER_OTLP_ENDPOINT ? "false" : "true",
+  // Export to the local Grafana LGTM collector unless the shell points elsewhere.
+  OTEL_SDK_DISABLED: process.env.OTEL_SDK_DISABLED ?? "false",
+  OTEL_EXPORTER_OTLP_ENDPOINT:
+    process.env.OTEL_EXPORTER_OTLP_ENDPOINT ??
+    `http://127.0.0.1:${telemetryPorts.otlpPort}`,
+  GRAFANA_URL: process.env.GRAFANA_URL ?? grafanaUrl,
 };
 const compose = [
   "compose",
@@ -72,6 +91,8 @@ const composeEnv = {
   LOCAL_DB_PORT: String(profile.dbPort),
   LOCAL_DB_PASSWORD: profile.password,
   LOCAL_DB_NAME: profile.project,
+  LOCAL_GRAFANA_PORT: String(telemetryPorts.grafanaPort),
+  LOCAL_OTLP_PORT: String(telemetryPorts.otlpPort),
 };
 if (command === "down") {
   const code = await launch("docker", [...compose, "down"], composeEnv).done;
@@ -79,10 +100,20 @@ if (command === "down") {
 } else {
   if (
     command === "up" &&
-    (await launch("docker", [...compose, "up", "-d", "--wait"], composeEnv)
-      .done) !== 0
+    (await launch(
+      "docker",
+      [...compose, "up", "-d", "--wait", "postgres"],
+      composeEnv,
+    ).done) !== 0
   )
     throw new Error("Docker Compose could not start local PostgreSQL");
+  // Telemetry is best effort: the stack still runs if Grafana LGTM cannot start.
+  if (
+    command === "up" &&
+    (await launch("docker", [...compose, "up", "-d", "lgtm"], composeEnv)
+      .done) !== 0
+  )
+    console.warn("Grafana LGTM did not start; telemetry will not be stored.");
   Object.assign(process.env, env);
   const { db, pool } = await import("@multitudes/db/client");
   let poolClosed = false;
@@ -170,6 +201,7 @@ if (command === "down") {
         throw new Error("Workspace dependencies did not build");
       await migrateDatabase(pool);
       await seed(db);
+      await seedDemoUsage(db);
       await pool.end();
       poolClosed = true;
       const workerArgs = ["--import", "tsx"];
@@ -181,7 +213,7 @@ if (command === "down") {
         );
       }
       console.info(
-        `Webapp: ${env.WEBAPP_URL}\nStudio: ${env.STUDIO_URL}\nSign in: pnpm dev:login studio admin`,
+        `Webapp: ${env.WEBAPP_URL}\nStudio: ${env.STUDIO_URL}\nGrafana: ${grafanaUrl}\nSign in: pnpm dev:login studio admin`,
       );
       const processes = [
         launch(

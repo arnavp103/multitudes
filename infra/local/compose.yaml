@@ -14,5 +14,21 @@ services:
       interval: 1s
       timeout: 5s
       retries: 30
+  # Local-only Grafana, Tempo, Loki, Prometheus and an OTLP collector in one container.
+  # Apps export OTLP/HTTP straight to its collector; Grafana allows anonymous admin,
+  # so both ports stay bound to loopback.
+  lgtm:
+    image: grafana/otel-lgtm:0.36.0
+    ports:
+      - "127.0.0.1:${LOCAL_GRAFANA_PORT:?required}:3000"
+      - "127.0.0.1:${LOCAL_OTLP_PORT:?required}:4318"
+    volumes:
+      - lgtm:/data
+    healthcheck:
+      test: ["CMD", "/otel-lgtm/docker/healthcheck.sh"]
+      interval: 2s
+      timeout: 5s
+      retries: 90
 volumes:
   postgres:
+  lgtm:
