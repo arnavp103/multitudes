@@ -75,12 +75,9 @@ export function RunConversation({ run }: { run: ChatSnapshot }) {
           <SparklesIcon className="size-4" />
         </div>
         <div className="min-w-0 flex-1 space-y-3">
-          <div className="flex items-center gap-3 text-sm font-medium">
+          <div className="text-body flex items-center gap-3 font-medium">
             Multitudes{" "}
-            <Badge
-              variant="outline"
-              className="text-muted-foreground text-[10px]"
-            >
+            <Badge variant="outline" className="text-muted-foreground">
               {run.status}
             </Badge>
           </div>
@@ -253,10 +250,11 @@ export function AgentChat({
   return (
     <section
       aria-label="Agent chat"
-      className="bg-card flex min-h-[620px] flex-col overflow-hidden rounded-xl border shadow-sm"
+      data-slot="agent-chat"
+      className="bg-card flex min-h-[620px] flex-col overflow-hidden rounded-2xl border shadow-sm backdrop-blur-(--tc-glass-blur)"
     >
-      <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
-        <div className="flex items-center gap-2 text-sm">
+      <div className="flex h-(--tc-header-h) items-center justify-between gap-3 border-b px-(--tc-panel-pad)">
+        <div className="text-body flex items-center gap-2">
           <span className="bg-primary size-1.5 rounded-full" />
           <span className="font-medium">Task workspace</span>
           <span className="text-muted-foreground hidden sm:inline">
@@ -278,7 +276,7 @@ export function AgentChat({
         )}
         {runId && runHref && (
           <a
-            className="text-primary text-xs hover:underline"
+            className="text-primary text-caption hover:underline"
             href={runHref(runId)}
           >
             Inspect trajectory ↗
@@ -303,7 +301,7 @@ export function AgentChat({
         </ConversationContent>
         <ConversationScrollButton />
       </Conversation>
-      <div className="mx-auto mt-auto w-full max-w-3xl space-y-3 px-5 pb-5">
+      <div className="mx-auto mt-auto w-full max-w-3xl space-y-3 px-(--tc-panel-pad) pb-(--tc-panel-pad)">
         {error && (
           <Alert variant="destructive">
             <AlertTitle>Unable to continue</AlertTitle>
@@ -340,7 +338,8 @@ export function AgentChat({
           </Suggestions>
         )}
         <form
-          className="bg-background focus-within:ring-ring/30 rounded-xl border p-3 focus-within:ring-2"
+          data-slot="composer"
+          className="focus-within:ring-ring/30 rounded-xl border border-(color:--tc-outline) bg-(--tc-field) p-3 transition-shadow focus-within:ring-2"
           onSubmit={(event) => {
             event.preventDefault();
             void send();
@@ -368,7 +367,7 @@ export function AgentChat({
             }}
           />
           <div className="mt-2 flex items-center justify-between gap-4">
-            <span className="text-muted-foreground text-[11px]">
+            <span className="text-muted-foreground text-caption">
               {runId
                 ? "This task is saved. You can return to this URL."
                 : "Each task starts a fresh conversation."}

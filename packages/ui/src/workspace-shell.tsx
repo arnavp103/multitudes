@@ -4,18 +4,22 @@ import type { ReactNode } from "react";
 import {
   ActivityIcon,
   FlaskConicalIcon,
+  GaugeIcon,
   LayersIcon,
   MessageSquareIcon,
   PanelLeftIcon,
   ShapesIcon,
+  SwatchBookIcon,
+  UsersIcon,
 } from "lucide-react";
 
 import { cn } from "@multitudes/ui";
 
 import { Badge } from "./badge";
 import { Button } from "./button";
-import { Separator } from "./separator";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./sheet";
+import { DirectionSwitcher } from "./tachyon";
+import { TachyonBackdrop } from "./tachyon-backdrop";
 import { ThemeToggle } from "./theme";
 
 const icons = {
@@ -23,6 +27,9 @@ const icons = {
   runs: ActivityIcon,
   cases: LayersIcon,
   experiments: FlaskConicalIcon,
+  dashboard: GaugeIcon,
+  users: UsersIcon,
+  system: SwatchBookIcon,
 };
 export interface WorkspaceLink {
   href: string;
@@ -31,7 +38,11 @@ export interface WorkspaceLink {
   active?: boolean;
 }
 
-/** Responsive workspace chrome shared by the product and evaluation studio. */
+/**
+ * Responsive workspace chrome shared by the product and evaluation studio.
+ * Every region carries a `data-slot` so Tachyon directions can restyle the
+ * chrome from CSS without forking this component.
+ */
 export function WorkspaceShell({
   children,
   links,
@@ -47,51 +58,74 @@ export function WorkspaceShell({
     <>
       <a
         href="/"
-        className="flex items-center gap-3 px-3 py-6 text-base font-semibold tracking-tight"
+        data-slot="shell-brand"
+        className="flex h-(--tc-header-h) shrink-0 items-center gap-2.5 px-2"
       >
-        <span className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg">
-          <ShapesIcon className="size-5" />
+        <span
+          data-slot="shell-mark"
+          className="bg-primary text-primary-foreground flex size-7 items-center justify-center rounded-md"
+        >
+          <ShapesIcon className="size-4" />
         </span>
-        Multitudes
+        <span className="type-display text-lead leading-none">Multitudes</span>
+        {studio && (
+          <span className="text-muted-foreground text-caption mt-0.5">
+            Studio
+          </span>
+        )}
       </a>
-      <div className="text-muted-foreground mt-6 mb-3 px-3 text-[10px] font-medium tracking-[0.18em] uppercase">
-        {studio ? "Development" : "Workspace"}
-      </div>
-      <nav aria-label="Workspace navigation" className="flex flex-col gap-1">
+      <nav
+        aria-label="Workspace navigation"
+        data-slot="shell-nav"
+        className="mt-4 flex flex-col gap-0.5"
+      >
         {links.map(({ href, label, icon, active }) => {
           const Icon = icons[icon];
           return (
             <a
               key={href}
               href={href}
+              data-slot="shell-nav-item"
+              data-active={active ? "true" : "false"}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "text-muted-foreground hover:bg-accent hover:text-foreground flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors",
-                active && "bg-accent text-foreground",
+                "text-muted-foreground hover:text-foreground text-body relative isolate flex h-(--tc-nav-h) items-center gap-2.5 rounded-md px-2.5 transition-colors",
+                "hover:bg-[color-mix(in_oklab,var(--tc-ink)_5%,transparent)]",
+                active && "bg-accent text-foreground font-medium",
               )}
             >
-              <Icon className="size-4" />
+              <Icon className="size-4 shrink-0" />
               {label}
             </a>
           );
         })}
       </nav>
-      <div className="mt-auto space-y-4 py-5">
-        <Separator />
-        <div className="text-muted-foreground flex items-center justify-between gap-2 px-2 text-xs">
-          <span>{studio ? "Internal studio" : "Your agent workspace"}</span>
-          <ThemeToggle />
-        </div>
+      <div
+        data-slot="shell-footer"
+        className="mt-auto flex items-center justify-between gap-1 border-t py-3"
+      >
+        <DirectionSwitcher />
+        <ThemeToggle />
       </div>
     </>
   );
   return (
-    <div className="bg-background min-h-dvh md:grid md:grid-cols-[220px_minmax(0,1fr)]">
-      <aside className="bg-sidebar sticky top-0 hidden h-dvh flex-col border-r px-3 md:flex">
+    <div
+      data-slot="shell"
+      className="min-h-dvh md:grid md:grid-cols-[var(--tc-sidebar-w)_minmax(0,1fr)]"
+    >
+      <TachyonBackdrop />
+      <aside
+        data-slot="shell-sidebar"
+        className="bg-sidebar sticky top-0 z-20 hidden h-dvh flex-col border-r px-3 backdrop-blur-(--tc-glass-blur) md:flex"
+      >
         {navigation}
       </aside>
-      <div className="min-w-0">
-        <header className="bg-background/95 flex h-16 items-center justify-between gap-4 border-b px-5 md:px-10">
+      <div className="flex min-w-0 flex-col">
+        <header
+          data-slot="shell-header"
+          className="sticky top-0 z-10 flex h-(--tc-header-h) items-center justify-between gap-4 border-b bg-[color-mix(in_oklab,var(--tc-paper)_var(--tc-chrome-alpha),transparent)] px-5 backdrop-blur-(--tc-glass-blur) md:px-(--tc-page-px)"
+        >
           <div className="flex items-center gap-3">
             <Sheet>
               <SheetTrigger asChild>
@@ -104,25 +138,25 @@ export function WorkspaceShell({
                   <PanelLeftIcon className="size-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="flex w-64 flex-col px-4">
+              <SheetContent side="left" className="flex w-64 flex-col px-3">
                 <SheetTitle className="sr-only">
                   Workspace navigation
                 </SheetTitle>
                 {navigation}
               </SheetContent>
             </Sheet>
-            <span className="text-muted-foreground text-sm">
+            <span className="text-muted-foreground text-body">
               {studio ? "Agent studio" : "Agent workspace"}
             </span>
-            <Badge variant="outline" className="text-[10px]">
-              {studio ? "INTERNAL" : "PREVIEW"}
-            </Badge>
+            <Badge variant="outline">{studio ? "Internal" : "Preview"}</Badge>
           </div>
-          <div className="text-muted-foreground truncate text-xs">
+          <div className="text-muted-foreground text-caption truncate">
             {account}
           </div>
         </header>
-        {children}
+        <div data-slot="shell-content" className="flex-1">
+          {children}
+        </div>
       </div>
     </div>
   );
