@@ -60,7 +60,7 @@ The steps below configure an existing database and OAuth provider instead.
 - `packages/api` — tRPC routers and context
 - `packages/auth` — Better Auth configuration
 - `packages/db` — Drizzle schema, client, and database scripts
-- `packages/ui` — shared React UI components
+- `packages/ui` — shared React UI components (Tachyon design system)
 - `packages/validators` — shared validation schemas
 - `tooling/cli` — the `multitudes` command-line tool
 - `tooling` — shared ESLint, Prettier, Tailwind CSS, TypeScript, and GitHub Actions configuration
@@ -106,3 +106,10 @@ credentials, studio access, telemetry, and recovery limits. Start the applicatio
 with `pnpm dev:studio` (port 3001) and `pnpm dev:backend`. No sandboxes are configured.
 
 See [development and authenticated testing](docs/development.md) for one-command local setup, role bootstrap, auth migrations, and browser tests. The [observability proposal review](docs/observability-roadmap.md) records the separate follow-up design.
+
+## Design system
+
+Tachyon is the shared design system: tokens in `tooling/tailwind/tachyon/`,
+components in `packages/ui`. See [Tachyon](docs/tachyon.md) for the token
+families, the swappable accent set, and how to use them. Signed-in staff can see
+every token and component live at Studio `/tachyon`.
