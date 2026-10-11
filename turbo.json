@@ -67,7 +67,8 @@
     "APP_VERSION",
     "WEBAPP_URL",
     "AUTH_PRODUCTION_URL",
-    "STUDIO_AUTH_PRODUCTION_URL"
+    "STUDIO_AUTH_PRODUCTION_URL",
+    "GRAFANA_URL"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",
