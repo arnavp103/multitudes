@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 
 import { cn } from "@multitudes/ui";
+import { tachyonFontVariables } from "@multitudes/ui/fonts";
+import { TachyonDirectionScript } from "@multitudes/ui/tachyon";
 import { ThemeProvider } from "@multitudes/ui/theme";
 import { Toaster } from "@multitudes/ui/toast";
 
@@ -35,12 +37,13 @@ export const viewport: Viewport = {
 
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={tachyonFontVariables} suppressHydrationWarning>
       <body
         className={cn(
           "bg-background text-foreground min-h-screen font-sans antialiased",
         )}
       >
+        <TachyonDirectionScript />
         <ThemeProvider>
           <TRPCReactProvider>{props.children}</TRPCReactProvider>
           <Toaster />

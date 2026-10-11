@@ -4,6 +4,7 @@ import { getDashboard } from "@multitudes/db/dashboard";
 import { Badge } from "@multitudes/ui/badge";
 import { buttonVariants } from "@multitudes/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@multitudes/ui/card";
+import { Metric } from "@multitudes/ui/metric";
 import {
   Table,
   TableBody,
@@ -89,24 +90,12 @@ export default async function AdminPage({
           ))}
         </nav>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map(([title, value, detail]) => (
-          <Card key={title}>
-            <CardHeader>
-              <CardTitle className="text-muted-foreground text-xs font-medium">
-                {title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-semibold tracking-tight">{value}</p>
-              <p className="text-muted-foreground mt-3 text-xs leading-5">
-                {detail}
-              </p>
-            </CardContent>
-          </Card>
+          <Metric key={title} label={title} value={value} detail={detail} />
         ))}
       </div>
-      <div className="my-6 flex flex-wrap gap-3">
+      <div className="my-(--tc-stack) flex flex-wrap gap-2">
         <Badge variant="outline">{data.runs?.pending ?? 0} pending runs</Badge>
         <Badge variant="outline">{data.runs?.retried ?? 0} retried runs</Badge>
         <Badge variant="outline">

@@ -12,112 +12,127 @@
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
 }
 
+/* Studio page vocabulary. Spacing and type come from Tachyon tokens only. */
 @layer components {
   .studio-content {
-    @apply mx-auto w-full max-w-[1500px] px-5 py-8 md:px-10 md:py-10;
+    @apply mx-auto w-full max-w-[1400px] px-5 md:px-(--tc-page-px);
+    padding-block: var(--tc-page-py) calc(var(--tc-page-py) * 2);
   }
   .studio-content h1,
   .login h1 {
-    @apply mt-2 mb-3 text-3xl font-semibold tracking-tight md:text-4xl;
+    @apply text-heading md:text-display mt-1 mb-2;
   }
   .studio-content h2 {
-    @apply mb-4 text-base font-semibold;
+    @apply text-body mb-3 font-semibold;
   }
+  /* Section path above a page title, rendered in sentence case */
   .eyebrow {
-    @apply text-primary text-[10px] font-medium tracking-[0.2em] uppercase;
+    @apply text-caption text-muted-foreground lowercase;
+  }
+  .eyebrow::first-letter {
+    @apply uppercase;
   }
   .muted,
   time {
-    @apply text-muted-foreground text-sm;
+    @apply text-muted-foreground text-body;
   }
   .workspace {
-    @apply mt-8 grid items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)];
+    @apply grid items-start gap-(--tc-stack) xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)];
+    margin-top: var(--tc-stack);
   }
   .panel {
-    @apply bg-card text-card-foreground mb-6 overflow-auto rounded-xl border p-6 shadow-sm;
+    @apply bg-card text-card-foreground overflow-auto rounded-xl border shadow-sm backdrop-blur-(--tc-glass-blur);
+    padding: var(--tc-panel-pad);
+    margin-bottom: var(--tc-stack);
   }
   .narrow {
     @apply max-w-3xl;
+  }
+  .studio-content > .muted + .panel {
+    margin-top: var(--tc-stack);
   }
   .section-title,
   .actions {
     @apply flex flex-wrap items-center justify-between gap-3;
   }
   .section-title {
-    @apply mb-6;
+    margin-bottom: var(--tc-stack);
+  }
+  .panel .section-title {
+    @apply mb-3;
   }
   .section-title h2 {
     @apply mb-0;
   }
   .studio-content form,
   .login form {
-    @apply grid gap-5;
+    @apply grid gap-4;
   }
   .studio-content label {
-    @apply grid gap-2 text-sm font-medium;
+    @apply text-body grid gap-1.5 font-medium;
   }
   .studio-content select {
-    @apply bg-background h-10 w-full rounded-md border px-3 text-sm;
+    @apply h-(--tc-control-h) w-full rounded-md border border-(color:--tc-line-strong) bg-(--tc-field) px-(--tc-control-px) text-sm;
   }
   .columns {
     @apply grid gap-4 sm:grid-cols-2;
   }
   .studio-content pre {
-    @apply max-w-full overflow-auto font-mono text-xs leading-6 break-words whitespace-pre-wrap;
+    @apply text-caption max-w-full overflow-auto leading-5 break-words whitespace-pre-wrap;
   }
   .studio-content td pre {
     @apply max-h-60 max-w-md;
   }
   .studio-content a:not([data-slot="button"]) {
-    @apply hover:text-primary;
+    @apply hover:text-primary decoration-(color:--tc-line-strong) underline-offset-4 hover:underline;
   }
   .status {
-    @apply inline-flex items-center rounded-full border px-2 py-1 text-[11px] font-medium;
+    @apply text-caption inline-flex h-5 items-center rounded-(--tc-radius-badge) border px-2 font-medium;
+    color: var(--status-color, var(--tc-ink-muted));
   }
   .completed {
-    @apply text-primary;
+    --status-color: var(--tc-positive);
   }
   .failed,
   .error {
-    @apply text-destructive;
+    --status-color: var(--tc-critical);
+    color: var(--tc-critical);
   }
   .queued,
   .running {
-    @apply text-amber-600 dark:text-amber-300;
+    --status-color: var(--tc-caution);
   }
   .facts {
-    @apply text-muted-foreground my-6 flex flex-wrap items-center gap-5 text-sm;
+    @apply text-muted-foreground text-body flex flex-wrap items-center gap-x-5 gap-y-2;
+    margin-block: var(--tc-stack);
   }
   .event {
-    @apply border-t py-4;
+    @apply border-t py-3;
   }
   .studio-content summary {
-    @apply cursor-pointer text-sm;
+    @apply text-body cursor-pointer;
   }
   .studio-content summary time {
-    @apply ml-5;
+    @apply type-data text-caption ml-4;
   }
   .empty {
-    @apply text-muted-foreground px-3 py-12 text-center text-sm;
+    @apply text-muted-foreground text-body px-3 py-10 text-center;
   }
   fieldset {
     @apply max-h-64 overflow-auto rounded-md border p-3;
   }
   legend {
-    @apply px-2 text-xs;
+    @apply text-caption px-1.5;
   }
   .studio-content label.check {
-    @apply my-3 flex items-center gap-3;
+    @apply my-2 flex items-center gap-3 font-normal;
   }
   .studio-content form.comparison {
     @apply my-6 flex items-end gap-3;
   }
   .login {
-    @apply mx-auto max-w-lg px-6 pt-[18vh];
+    @apply mx-auto grid max-w-md gap-4 px-6 pt-[16vh];
   }
 }

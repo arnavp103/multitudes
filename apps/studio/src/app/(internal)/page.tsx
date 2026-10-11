@@ -4,7 +4,7 @@ import Link from "next/link";
 import { canAccessStudio } from "@multitudes/auth/permissions";
 import { listRuns } from "@multitudes/db/runs";
 import { Button } from "@multitudes/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@multitudes/ui/card";
+import { Metric } from "@multitudes/ui/metric";
 import {
   Table,
   TableBody,
@@ -25,12 +25,12 @@ export default async function RunsPage() {
   const runs = await listRuns();
   return (
     <>
-      <p className="eyebrow">OBSERVE / ITERATE</p>
+      <p className="eyebrow">Observe / iterate</p>
       <h1>Agent runs</h1>
       <p className="muted">
         Durable trajectories from your shared production and evaluation runtime.
       </p>
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-(--tc-stack) grid gap-3 sm:grid-cols-3">
         {[
           {
             title: "Recent runs",
@@ -50,21 +50,12 @@ export default async function RunsPage() {
             detail: "Failed runs in this window",
           },
         ].map((item) => (
-          <Card key={item.title}>
-            <CardHeader className="pb-0">
-              <CardTitle className="text-muted-foreground text-xs font-medium">
-                {item.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-semibold tracking-tight">
-                {item.value}
-              </p>
-              <p className="text-muted-foreground mt-2 text-xs">
-                {item.detail}
-              </p>
-            </CardContent>
-          </Card>
+          <Metric
+            key={item.title}
+            label={item.title}
+            value={item.value}
+            detail={item.detail}
+          />
         ))}
       </div>
       <div className="workspace">
