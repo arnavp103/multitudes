@@ -1,0 +1,117 @@
+/*
+ * Tachyon core tokens. Every value here is a default that a direction
+ * (`[data-direction]` on <html>) may override. Components and app CSS read
+ * these through the semantic shadcn variables in ../theme.css or directly
+ * as `var(--tc-*)`; they never hard-code colours, radii, or durations.
+ *
+ * Naming: --tc-<family>-<role>.
+ */
+:root {
+  /* Neutral palette (per direction and mode) */
+  --tc-paper: oklch(0.982 0.004 250);
+  --tc-surface: oklch(1 0 0);
+  --tc-raised: oklch(1 0 0);
+  --tc-sunken: oklch(0.955 0.006 250);
+  --tc-ink: oklch(0.24 0.02 260);
+  --tc-ink-muted: oklch(0.5 0.02 260);
+  --tc-line: oklch(0.89 0.008 250);
+  --tc-line-strong: oklch(0.78 0.012 250);
+  --tc-grid: oklch(0.6 0.05 240 / 0.08);
+  --tc-grid-major: oklch(0.6 0.05 240 / 0.14);
+  --tc-field: var(--tc-surface);
+  --tc-outline: var(--tc-line-strong);
+  --tc-shade: oklch(0.3 0.03 260 / 0.2);
+
+  /* Accent mapping (directions may remap roles, e.g. white "primary" on a blueprint) */
+  --tc-primary: var(--tachyon-signal);
+  --tc-primary-ink: var(--tachyon-signal-ink);
+  --tc-highlight: var(--tachyon-flare);
+  --tc-highlight-ink: var(--tachyon-flare-ink);
+
+  /* Status (deliberately not accent-derived so logo changes cannot hide errors) */
+  --tc-positive: oklch(0.55 0.13 155);
+  --tc-caution: oklch(0.62 0.14 70);
+  --tc-critical: oklch(0.55 0.2 27);
+
+  /* Type families: body, display (headings), data (numbers, IDs, code), note (annotations) */
+  --tc-font-body: ui-sans-serif, system-ui, sans-serif;
+  --tc-font-display: var(--tc-font-body);
+  --tc-font-data: ui-monospace, monospace;
+  --tc-font-note: var(--tc-font-body);
+  --tc-font-readout: var(--tc-font-display);
+  --tc-display-weight: 600;
+  --tc-display-tracking: -0.02em;
+  --tc-display-variation: normal;
+  --tc-body-variation: normal;
+  --tc-data-variation: normal;
+  --tc-note-variation: normal;
+  --tc-readout-variation: normal;
+  --tc-readout-weight: 600;
+
+  /* Density: New York sizing as the floor; directions adjust within it */
+  --tc-control-h: 2.25rem;
+  --tc-control-h-sm: 2rem;
+  --tc-control-h-lg: 2.5rem;
+  --tc-control-px: 0.75rem;
+  --tc-panel-pad: 1.25rem;
+  --tc-panel-gap: 1rem;
+  --tc-cell-px: 0.75rem;
+  --tc-cell-h: 2.5rem;
+  --tc-nav-h: 2.25rem;
+  --tc-header-h: 3.25rem;
+  --tc-sidebar-w: 15rem;
+  --tc-page-px: 2.5rem;
+  --tc-page-py: 2rem;
+  --tc-stack: 1.5rem;
+
+  /* Radius by hierarchy, not one radius everywhere */
+  --tc-radius-control: 0.375rem;
+  --tc-radius-panel: 0.625rem;
+  --tc-radius-sheet: 0.875rem;
+  --tc-radius-pill: 999px;
+  --tc-radius-badge: var(--tc-radius-pill);
+
+  /* Elevation: 0 flat, 1 resting panel, 2 floating (menus), 3 modal */
+  --tc-shadow-color: oklch(0.3 0.03 260 / 0.12);
+  --tc-elevation-0: 0 0 #0000;
+  --tc-elevation-1: 0 1px 2px var(--tc-shadow-color);
+  --tc-elevation-2:
+    0 1px 2px var(--tc-shadow-color), 0 8px 24px -8px var(--tc-shadow-color);
+  --tc-elevation-3:
+    0 2px 4px var(--tc-shadow-color), 0 24px 48px -12px var(--tc-shadow-color);
+
+  /* Transparency: glass surfaces, scrims, and how much backdrop shows through */
+  --tc-glass-alpha: 88%;
+  --tc-glass-blur: 12px;
+  --tc-chrome-alpha: 82%;
+  --tc-scrim: oklch(0.2 0.02 260 / 0.4);
+  --tc-backdrop-opacity: 1;
+
+  /* Motion */
+  --tc-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --tc-ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --tc-ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --tc-ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --tc-duration-instant: 90ms;
+  --tc-duration-quick: 150ms;
+  --tc-duration-base: 220ms;
+  --tc-duration-slow: 420ms;
+  --tc-duration-scene: 900ms;
+  --tc-stagger: 45ms;
+  /* Page-load entrance, composed per direction (see base.css) */
+  --tc-enter-transform: translateY(6px);
+  --tc-enter-filter: none;
+  --tc-enter-animation: tc-enter;
+}
+
+/* Specific enough to beat direction overrides (`:root[data-direction]`) */
+@media (prefers-reduced-motion: reduce) {
+  :root:root:root {
+    --tc-duration-instant: 0ms;
+    --tc-duration-quick: 0ms;
+    --tc-duration-base: 0ms;
+    --tc-duration-slow: 0ms;
+    --tc-duration-scene: 0ms;
+    --tc-stagger: 0ms;
+  }
+}

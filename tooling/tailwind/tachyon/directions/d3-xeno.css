@@ -1,0 +1,193 @@
+/*
+ * D3 Xeno: an operating system from somewhere else.
+ * Lilac-grey mineral palette, chamfered panels with HUD brackets, a dot-matrix
+ * readout face for numbers, and slow orbital linework in the background.
+ * Page load is a single "boot" wipe.
+ */
+:root[data-direction="d3"] {
+  --tc-paper: oklch(0.935 0.014 300);
+  --tc-surface: oklch(0.958 0.011 300);
+  --tc-raised: oklch(0.972 0.008 300);
+  --tc-sunken: oklch(0.905 0.018 300);
+  --tc-field: oklch(0.972 0.008 300);
+  --tc-ink: oklch(0.25 0.05 300);
+  --tc-ink-muted: oklch(0.48 0.045 300);
+  --tc-line: oklch(0.25 0.05 300 / 0.2);
+  --tc-line-strong: oklch(0.25 0.05 300 / 0.48);
+  --tc-outline: var(--tc-line-strong);
+  --tc-grid: oklch(0.25 0.05 300 / 0.16);
+
+  --tc-font-body: var(--font-saira), ui-sans-serif, sans-serif;
+  --tc-font-display: var(--font-saira), ui-sans-serif, sans-serif;
+  --tc-font-data: var(--font-kode-mono), ui-monospace, monospace;
+  --tc-font-note: var(--font-kode-mono), ui-monospace, monospace;
+  --tc-font-readout: var(--font-doto), ui-monospace, monospace;
+  --tc-display-weight: 560;
+  --tc-display-tracking: 0.005em;
+  --tc-display-variation: "wdth" 118;
+  --tc-body-variation: "wdth" 96;
+  --tc-readout-variation: "ROND" 60;
+  --tc-readout-weight: 900;
+
+  --tc-radius-control: 0px;
+  --tc-radius-panel: 0px;
+  --tc-radius-sheet: 0px;
+  --tc-radius-badge: 0px;
+  --tc-chamfer: 12px;
+
+  --tc-elevation-1: 0 0 #0000;
+  --tc-shadow-color: oklch(0.2 0.05 300 / 0.28);
+  --tc-elevation-2:
+    0 0 0 1px var(--tc-line-strong), 0 18px 40px -20px var(--tc-shadow-color);
+  --tc-elevation-3:
+    0 0 0 1px var(--tc-line-strong), 0 30px 60px -24px var(--tc-shadow-color);
+
+  --tc-glass-alpha: 86%;
+  --tc-glass-blur: 6px;
+  --tc-chrome-alpha: 80%;
+
+  --tc-ease-standard: cubic-bezier(0.65, 0, 0.35, 1);
+  --tc-ease-enter: cubic-bezier(0.7, 0, 0.2, 1);
+  --tc-duration-quick: 120ms;
+  --tc-duration-scene: 720ms;
+  --tc-stagger: 60ms;
+  --tc-enter-transform: none;
+  --tc-enter-filter: none;
+  --tc-enter-animation: tc-wipe-x, tc-flicker;
+}
+
+:root[data-direction="d3"].dark {
+  --tc-paper: oklch(0.175 0.032 300);
+  --tc-surface: oklch(0.215 0.036 300);
+  --tc-raised: oklch(0.245 0.038 300);
+  --tc-sunken: oklch(0.155 0.03 300);
+  --tc-field: oklch(0.155 0.03 300);
+  --tc-ink: oklch(0.93 0.025 300);
+  --tc-ink-muted: oklch(0.72 0.045 300);
+  --tc-line: oklch(0.93 0.025 300 / 0.15);
+  --tc-line-strong: oklch(0.93 0.025 300 / 0.36);
+  --tc-grid: oklch(0.93 0.025 300 / 0.12);
+  --tc-shadow-color: oklch(0.05 0.03 300 / 0.6);
+  --tc-positive: oklch(0.82 0.13 165);
+  --tc-caution: oklch(0.85 0.14 85);
+  --tc-critical: oklch(0.72 0.17 18);
+}
+
+/* Component treatments are unlayered so they win over Tailwind utilities. */
+[data-direction="d3"] [data-slot="tachyon-backdrop"] {
+  background-image: radial-gradient(var(--tc-grid) 1px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+
+/* Chamfered panels: the diagonal cut keeps its edge via a gradient hairline */
+[data-direction="d3"] [data-slot="card"],
+[data-direction="d3"] [data-slot="agent-chat"],
+[data-direction="d3"] .panel {
+  --c: var(--tc-chamfer);
+  --edge: var(--tc-line-strong);
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+  border-color: var(--tc-line-strong);
+  background-image:
+    linear-gradient(
+      225deg,
+      transparent calc(var(--c) * 0.7071 - 0.5px),
+      var(--edge) calc(var(--c) * 0.7071 - 0.5px),
+      var(--edge) calc(var(--c) * 0.7071 + 0.75px),
+      transparent calc(var(--c) * 0.7071 + 0.75px)
+    ),
+    linear-gradient(
+      45deg,
+      transparent calc(var(--c) * 0.7071 - 0.5px),
+      var(--edge) calc(var(--c) * 0.7071 - 0.5px),
+      var(--edge) calc(var(--c) * 0.7071 + 0.75px),
+      transparent calc(var(--c) * 0.7071 + 0.75px)
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      var(--tc-line-strong) 0 1px,
+      transparent 1px 5px
+    );
+  background-repeat: no-repeat;
+  background-size:
+    100% 100%,
+    100% 100%,
+    4.5rem 4px;
+  background-position:
+    0 0,
+    0 0,
+    var(--tc-panel-pad) 0;
+}
+
+[data-direction="d3"] [data-slot="button"] {
+  --c: 7px;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+  font-variation-settings: "wdth" 110;
+  letter-spacing: 0.01em;
+}
+[data-direction="d3"] [data-slot="button"][data-variant="ghost"],
+[data-direction="d3"] [data-slot="button"][data-variant="link"] {
+  clip-path: none;
+}
+
+[data-direction="d3"] [data-slot="shell-sidebar"] {
+  border-right-color: var(--tc-line-strong);
+}
+[data-direction="d3"] [data-slot="shell-nav-item"] {
+  border-left: 2px solid transparent;
+}
+[data-direction="d3"] [data-slot="shell-nav-item"][data-active="true"] {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--tachyon-signal) 18%, transparent),
+    transparent
+  );
+  border-left-color: var(--tachyon-signal);
+}
+[data-direction="d3"] [data-slot="shell-nav-item"][data-active="true"]::after {
+  content: "";
+  margin-left: auto;
+  width: 6px;
+  height: 6px;
+  rotate: 45deg;
+  background: var(--tachyon-signal);
+}
+
+[data-direction="d3"] .eyebrow {
+  color: var(--tachyon-signal);
+  font-family: var(--tc-font-data);
+}
+[data-direction="d3"] .eyebrow::before {
+  content: "\25C7\00a0";
+}
+
+[data-direction="d3"] .status {
+  border-radius: 0;
+  font-family: var(--tc-font-data);
+  padding-inline: 0.5rem 0.375rem;
+  border-width: 0 0 0 3px;
+  border-color: currentColor;
+  background: color-mix(in oklab, currentColor 10%, transparent);
+}
+
+[data-direction="d3"] [data-slot="table-header"] [data-slot="table-row"] {
+  border-bottom-color: var(--tc-line-strong);
+}
+[data-direction="d3"]
+  [data-slot="table-body"]
+  [data-slot="table-row"]:nth-child(even) {
+  background: color-mix(in oklab, var(--tc-sunken) 50%, transparent);
+}

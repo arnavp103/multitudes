@@ -24,7 +24,7 @@ export function StudioShell({
         {
           href: "/admin",
           label: "Dashboard",
-          icon: "runs" as const,
+          icon: "dashboard" as const,
           active: path === "/admin",
         },
         {
@@ -55,9 +55,15 @@ export function StudioShell({
         {
           href: "/users",
           label: "Users",
-          icon: "runs" as const,
+          icon: "users" as const,
           active: path === "/users",
           permission: "users" as const,
+        },
+        {
+          href: "/tachyon",
+          label: "Design system",
+          icon: "system" as const,
+          active: path === "/tachyon",
         },
       ].filter(
         (link) => !link.permission || canAccessStudio(role, link.permission),

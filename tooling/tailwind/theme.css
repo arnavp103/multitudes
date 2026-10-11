@@ -1,73 +1,70 @@
+/*
+ * Tachyon: the Multitudes design system root.
+ *
+ * Layers, in order:
+ *   1. tachyon/accent.css      swappable brand accents (logo-derived)
+ *   2. tachyon/tokens.css      core scales: palette, type, density, radius,
+ *                              elevation, transparency, motion
+ *   3. tachyon/directions.css  round-1 exploration directions (D1-D4)
+ *   4. this file               shadcn semantic variables + Tailwind theme
+ *
+ * See docs/tachyon.md for usage.
+ */
+@import "./tachyon/accent.css";
+@import "./tachyon/tokens.css";
+@import "./tachyon/directions.css";
+@import "./tachyon/base.css";
+
+/* shadcn semantic variables, derived from Tachyon tokens */
 :root {
-  --background: oklch(0.985 0.002 240);
-  --foreground: oklch(0.22 0.015 240);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.015 240);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.015 240);
-  --primary: oklch(0.48 0.1 180);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.95 0.005 240);
-  --secondary-foreground: oklch(0.3 0.02 240);
-  --muted: oklch(0.95 0.005 240);
-  --muted-foreground: oklch(0.48 0.02 240);
-  --accent: oklch(0.93 0.016 180);
-  --accent-foreground: oklch(0.25 0.03 180);
-  --destructive: oklch(0.55 0.2 25);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.89 0.008 240);
-  --input: oklch(0.89 0.008 240);
-  --ring: oklch(0.48 0.1 180);
-  --sidebar: oklch(0.985 0.002 240);
-  --sidebar-foreground: oklch(0.22 0.015 240);
-  --sidebar-primary: oklch(0.48 0.1 180);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.93 0.016 180);
-  --sidebar-accent-foreground: oklch(0.25 0.03 180);
-  --sidebar-border: oklch(0.89 0.008 240);
-  --sidebar-ring: oklch(0.48 0.1 180);
-  --chart-1: oklch(0.6 0.12 175);
-  --chart-2: oklch(0.6 0.12 220);
-  --chart-3: oklch(0.6 0.12 280);
-  --chart-4: oklch(0.6 0.12 60);
-  --chart-5: oklch(0.6 0.12 25);
-  --radius: 0.625rem;
+  --background: var(--tc-paper);
+  --foreground: var(--tc-ink);
+  --card: color-mix(
+    in oklab,
+    var(--tc-surface) var(--tc-glass-alpha),
+    transparent
+  );
+  --card-foreground: var(--tc-ink);
+  --popover: var(--tc-raised);
+  --popover-foreground: var(--tc-ink);
+  --primary: var(--tc-primary);
+  --primary-foreground: var(--tc-primary-ink);
+  --secondary: var(--tc-sunken);
+  --secondary-foreground: var(--tc-ink);
+  --muted: var(--tc-sunken);
+  --muted-foreground: var(--tc-ink-muted);
+  --accent: color-mix(in oklab, var(--tc-primary) 12%, var(--tc-surface));
+  --accent-foreground: var(--tc-ink);
+  --destructive: var(--tc-critical);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: var(--tc-line);
+  --input: var(--tc-line-strong);
+  --ring: var(--tc-primary);
+  --sidebar: color-mix(
+    in oklab,
+    var(--tc-paper) var(--tc-chrome-alpha),
+    transparent
+  );
+  --sidebar-foreground: var(--tc-ink);
+  --sidebar-primary: var(--tc-primary);
+  --sidebar-primary-foreground: var(--tc-primary-ink);
+  --sidebar-accent: color-mix(
+    in oklab,
+    var(--tc-primary) 12%,
+    var(--tc-surface)
+  );
+  --sidebar-accent-foreground: var(--tc-ink);
+  --sidebar-border: var(--tc-line);
+  --sidebar-ring: var(--tc-primary);
+  --chart-1: var(--tachyon-signal);
+  --chart-2: var(--tachyon-trace);
+  --chart-3: var(--tachyon-flare);
+  --chart-4: var(--tc-ink-muted);
+  --chart-5: var(--tc-critical);
+  --radius: var(--tc-radius-control);
   --tracking-normal: 0rem;
 }
-.dark {
-  --background: oklch(0.145 0.009 240);
-  --foreground: oklch(0.94 0.008 240);
-  --card: oklch(0.18 0.009 240);
-  --card-foreground: oklch(0.94 0.008 240);
-  --popover: oklch(0.2 0.01 240);
-  --popover-foreground: oklch(0.94 0.008 240);
-  --primary: oklch(0.8 0.11 175);
-  --primary-foreground: oklch(0.17 0.025 180);
-  --secondary: oklch(0.235 0.012 240);
-  --secondary-foreground: oklch(0.88 0.01 240);
-  --muted: oklch(0.22 0.01 240);
-  --muted-foreground: oklch(0.68 0.02 240);
-  --accent: oklch(0.26 0.02 200);
-  --accent-foreground: oklch(0.94 0.01 180);
-  --destructive: oklch(0.72 0.16 25);
-  --destructive-foreground: oklch(0.16 0 0);
-  --border: oklch(0.29 0.012 240);
-  --input: oklch(0.31 0.012 240);
-  --ring: oklch(0.8 0.11 175);
-  --sidebar: oklch(0.145 0.009 240);
-  --sidebar-foreground: oklch(0.94 0.008 240);
-  --sidebar-primary: oklch(0.8 0.11 175);
-  --sidebar-primary-foreground: oklch(0.17 0.025 180);
-  --sidebar-accent: oklch(0.26 0.02 200);
-  --sidebar-accent-foreground: oklch(0.94 0.01 180);
-  --sidebar-border: oklch(0.29 0.012 240);
-  --sidebar-ring: oklch(0.8 0.11 175);
-  --chart-1: oklch(0.75 0.12 175);
-  --chart-2: oklch(0.75 0.12 220);
-  --chart-3: oklch(0.75 0.12 280);
-  --chart-4: oklch(0.75 0.12 60);
-  --chart-5: oklch(0.75 0.12 25);
-}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -102,22 +99,63 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-sans: var(--font-geist-sans, ui-sans-serif, system-ui, sans-serif);
-  --font-mono: var(--font-geist-mono, ui-monospace, monospace);
+  /* Tachyon colours, for places shadcn has no name for */
+  --color-paper: var(--tc-paper);
+  --color-surface: var(--tc-surface);
+  --color-raised: var(--tc-raised);
+  --color-sunken: var(--tc-sunken);
+  --color-ink: var(--tc-ink);
+  --color-ink-muted: var(--tc-ink-muted);
+  --color-line: var(--tc-line);
+  --color-line-strong: var(--tc-line-strong);
+  --color-signal: var(--tachyon-signal);
+  --color-flare: var(--tachyon-flare);
+  --color-trace: var(--tachyon-trace);
+  --color-positive: var(--tc-positive);
+  --color-caution: var(--tc-caution);
+  --color-critical: var(--tc-critical);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--tc-font-body);
+  --font-display: var(--tc-font-display);
+  --font-mono: var(--tc-font-data);
+  --font-note: var(--tc-font-note);
 
-  --shadow-2xs: var(--shadow-2xs);
-  --shadow-xs: var(--shadow-xs);
-  --shadow-sm: var(--shadow-sm);
-  --shadow: var(--shadow);
-  --shadow-md: var(--shadow-md);
-  --shadow-lg: var(--shadow-lg);
-  --shadow-xl: var(--shadow-xl);
-  --shadow-2xl: var(--shadow-2xl);
+  /* Type scale: minor third (1.2) from a 14px body, for dense product UI */
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.375rem;
+  --text-lead: 1.0625rem;
+  --text-lead--line-height: 1.625rem;
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.75rem;
+  --text-heading: 1.5rem;
+  --text-heading--line-height: 2rem;
+  --text-display: 2.125rem;
+  --text-display--line-height: 2.5rem;
+  --text-hero: 2.625rem;
+  --text-hero--line-height: 3rem;
+
+  --radius-sm: calc(var(--tc-radius-control) * 0.66);
+  --radius-md: var(--tc-radius-control);
+  --radius-lg: var(--tc-radius-panel);
+  --radius-xl: var(--tc-radius-panel);
+  --radius-2xl: var(--tc-radius-sheet);
+
+  --shadow-2xs: var(--tc-elevation-0);
+  --shadow-xs: var(--tc-elevation-1);
+  --shadow-sm: var(--tc-elevation-1);
+  --shadow-md: var(--tc-elevation-2);
+  --shadow-lg: var(--tc-elevation-2);
+  --shadow-xl: var(--tc-elevation-3);
+  --shadow-2xl: var(--tc-elevation-3);
+
+  --ease-standard: var(--tc-ease-standard);
+  --ease-enter: var(--tc-ease-enter);
+  --ease-exit: var(--tc-ease-exit);
+  --ease-spring: var(--tc-ease-spring);
+  --default-transition-duration: var(--tc-duration-quick);
+  --default-transition-timing-function: var(--tc-ease-standard);
 
   --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
   --tracking-tight: calc(var(--tracking-normal) - 0.025em);

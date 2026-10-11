@@ -1,0 +1,10 @@
+/*
+ * Round-1 exploration directions, selected by `data-direction` on <html>.
+ * Each file only overrides --tc-* tokens and adds component treatments keyed
+ * on shadcn `data-slot` attributes. The chosen direction will be folded into
+ * tokens.css and the rest deleted.
+ */
+@import "./directions/d1-cyanotype.css";
+@import "./directions/d2-fieldplay.css";
+@import "./directions/d3-xeno.css";
+@import "./directions/d4-cel.css";
