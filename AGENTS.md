@@ -14,28 +14,34 @@ packages, and workspace tooling.
 
 ```text
 .
-├── apps/
-│   ├── webapp/
-│   ├── studio/
-│   └── backend/
-├── packages/
-│   ├── ai/
-│   ├── email/
-│   ├── agent/
-│   ├── evals/
-│   ├── observability/
-│   ├── api/
-│   ├── auth/
-│   ├── db/
-│   ├── ui/
-│   └── validators/
-└── tooling/
-    ├── cli/
-    ├── eslint/
-    ├── github/
-    ├── prettier/
-    ├── tailwind/
-    └── typescript/
+├── apps/                # deployable processes
+│   ├── webapp/          # product Next.js app: task chat
+│   ├── studio/          # internal Next.js app: runs, evals, admin
+│   └── backend/         # pg-boss worker running agents and graders
+├── packages/            # shared libraries, consumed from source
+│   ├── ai/              # Gemini model factory and cost metering
+│   ├── email/           # React Email rendering, transport-injected mailer
+│   ├── agent/           # Strands agent factory, submitRun, prompts, tools
+│   ├── evals/           # eval cases, experiments, graders, LLM judge
+│   ├── observability/   # Pino, OpenTelemetry, health payload
+│   ├── api/             # tRPC router for the webapp
+│   ├── auth/            # Better Auth factory and roles
+│   ├── db/              # schema, queries, migrations, queue, test databases
+│   ├── ui/              # shared shadcn/AI Elements components
+│   └── validators/      # placeholder for shared Zod schemas
+├── tooling/             # workspace configuration and scripts
+│   ├── cli/             # `multitudes` CLI
+│   ├── dev/             # dev:up/login/down and Playwright e2e runner
+│   ├── eslint/          # shared flat configs
+│   ├── github/          # CI setup action
+│   ├── prettier/        # shared Prettier config
+│   ├── tailwind/        # theme CSS and PostCSS config
+│   ├── typescript/      # shared tsconfig bases
+│   └── version.mjs      # stamps the Git SHA build identity
+├── infra/               # local Postgres Compose file, OTel Collector config
+├── docs/                # platform, development, and design-review docs
+├── turbo/generators/    # `turbo gen init` package scaffold
+└── .agents/skills/      # vendored agent skills
 ```
 
 Each workspace may have a more specific `AGENTS.md`; read all instructions from

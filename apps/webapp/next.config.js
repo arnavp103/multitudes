@@ -7,6 +7,8 @@ await jiti.import("./src/env");
 
 /** @type {import("next").NextConfig} */
 const config = {
+  /** Keep generated Next.js agent rules out of the hand-written AGENTS.md. */
+  agentRules: false,
   /** Enables hot reloading for local packages without a build step */
   experimental: { useTypeScriptCli: true },
   transpilePackages: [
